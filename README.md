@@ -31,7 +31,7 @@ $ borg "list all files in dir"
         [24] find . -maxdepth 1 -type f|ls -lt|less
 ```
 
-(Only displaying the first 2 hits here, but that's configurable, by default it's 10)
+(Only displaying the first 2 hits here, but that's configurable, by default it's 5)
 
 Some explanations for the UI:
 - () denotes hits for your query
