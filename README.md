@@ -43,7 +43,12 @@ Some explanations for the UI:
 
 Just do a `go install`, I will provide binaries to download later to make it easy to install for those who don't have go installed.
 
-##### Feature
+#### How it works
+
+The client connects to a server at borg.crufter.com, but you can host your own if you want to (see daemon folder).
+Self hosting will become less appealing once people start contributing their own content to the database though.
+
+##### Features
 
 - only querying works for now
 
