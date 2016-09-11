@@ -2,6 +2,8 @@
 ===
 
 Borg was built out of the frustration of having to leave the terminal to search for bash commands.
+Its succinct output also makes it easier to glance over sources
+
 This is how it looks like:
 
 ```
@@ -49,6 +51,9 @@ It should be something like (this one is for linux):
 wget https://github.com/crufter/borg/blob/master/builds/borg_linux_amd64\?raw\=true -O /usr/local/bin/borg
 chmod 755 /usr/local/bin/borg
 ```
+
+Now you are ready to rock! Query with `borg "my query"`, because there is a server listening to your questions and eager to help!
+Keep querying, and let me know if you want something to be improved.
 
 #### How it works
 
