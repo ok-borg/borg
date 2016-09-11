@@ -41,7 +41,14 @@ Some explanations for the UI:
 
 #### Installation
 
-Just do a `go install`, I will provide binaries to download later to make it easy to install for those who don't have go installed.
+Just do a `go install`, or if you don't have Go installed there are builds in the build folder - pick one according to your environment.
+
+It should be something like:
+
+```
+wget https://github.com/crufter/borg/blob/master/builds/borg_linux_amd64\?raw\=true -O /usr/local/bin/borg
+chmod 755 /usr/local/bin/borg
+```
 
 #### How it works
 
