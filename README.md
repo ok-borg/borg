@@ -43,7 +43,7 @@ Some explanations for the UI:
 
 Just do a `go install`, or if you don't have Go installed there are builds in the build folder - pick one according to your environment.
 
-It should be something like:
+It should be something like (this one is for linux):
 
 ```
 wget https://github.com/crufter/borg/blob/master/builds/borg_linux_amd64\?raw\=true -O /usr/local/bin/borg
