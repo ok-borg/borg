@@ -38,3 +38,15 @@ Some explanations for the UI:
 - [] denotes possible solutions
 - ... under a [] means more lines to display
 - a - in a solution means separate code examples extracted from the same source
+
+#### Installation
+
+Just do a `go install`, I will provide binaries to download later to make it easy to install for those who don't have go installed.
+
+##### Feature
+
+- only querying works for now
+
+#### Future plans
+
+- add a way to add entries and rate solutions
