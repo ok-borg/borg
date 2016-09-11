@@ -1,3 +1,0 @@
-network :
-    publish_host : 192.168.99.100
-    bind_host: 0.0.0.0

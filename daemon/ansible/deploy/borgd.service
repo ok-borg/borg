@@ -1,0 +1,12 @@
+[Unit]
+Description=Borgd web server
+
+[Service]
+EnvironmentFile=/etc/environment
+TimeoutStartSec=60
+Restart=always
+RestartSec=3
+ExecStart=/usr/bin/borgd
+
+[Install]
+WantedBy=multi-user.target
