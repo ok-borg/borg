@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	servAddr = "http://127.0.0.1:9992"
+	servAddr = "http://borg.crufter.com:9992"
 )
 
 func main() {

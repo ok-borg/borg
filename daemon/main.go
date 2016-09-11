@@ -17,7 +17,7 @@ var (
 )
 
 func init() {
-	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL("http://192.168.99.100:9200"))
+	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL("http://127.0.0.1:9200"))
 	if err != nil {
 		panic(err)
 	}
