@@ -1,4 +1,4 @@
-BORG - A terminal based search engine for bash commands
+![](./borghead.png) )BORG - A terminal based search engine for bash commands
 ===
 
 Borg was built out of the frustration of having to leave the terminal to search for bash commands.
