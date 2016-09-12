@@ -1,5 +1,6 @@
 ![](./borghead.png) BORG - A terminal based search engine for bash commands
 ===
+![](https://img.shields.io/badge/cruft-guaranteed-green.svg)
 
 Borg was built out of the frustration of having to leave the terminal to search for bash commands.
 Its succinct output also makes it easier to glance over sources
