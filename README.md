@@ -5,7 +5,7 @@ BORG - A terminal based search engine for bash commands
 ![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg)
 
 Borg was built out of the frustration of having to leave the terminal to search for bash commands.
-Its succinct output also makes it easier to glance over sources
+Its succinct output also makes it easier to glance over multiple snippets of code.
 
 This is how it looks like:
 
@@ -44,6 +44,12 @@ Some explanations for the UI:
 - ... under a [] means more lines to display
 - a - in a solution means separate code examples extracted from the same source
 
+#### State
+
+Please keep in mind that this is in a really-really early phase.
+Glitches are expected and there are a lot of low hanging fruits I can go after.
+The relevancy of the results, the interface, and the available features in general will be greatly improved in the coming weeks.
+
 #### Installation
 
 Just do a `go install`, or if you don't have Go installed there are builds in the build folder - pick one according to your environment.
@@ -63,10 +69,12 @@ Keep querying, and let me know if you want something to be improved.
 The client connects to a server at borg.crufter.com, but you can host your own if you want to (see daemon folder).
 Self hosting will become less appealing once people start contributing their own content to the database though.
 
-##### Features
+#### Features
 
 - only querying works for now
 
 #### Future plans
 
-- add a way to add entries and rate solutions
+- add a way to add public, private and organisation private entries
+- enabling users to rate solutions
+- way more, but first let's tackle the ones above =)
