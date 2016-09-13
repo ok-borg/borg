@@ -20,9 +20,10 @@ const (
 
 func main() {
 	flag.Parse()
-	switch flag.Arg(0) {
-	default:
+	if flag.Arg(0) != "" {
 		query(flag.Arg(0))
+	} else {
+		fmt.Println("Usage: borg \"your question\"")
 	}
 }
 
