@@ -1,4 +1,6 @@
-![](./borghead.png) BORG - A terminal based search engine for bash commands
+<p align="center"><img src="https://github.com/fabric-8/borg/raw/master/borg_mascot.png" alt=""></p>
+
+BORG - A terminal based search engine for bash commands
 ===
 ![](https://img.shields.io/badge/cruft-guaranteed-green.svg)
 
