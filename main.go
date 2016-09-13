@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
+	"time"
 )
 
 const (
@@ -26,7 +27,15 @@ func main() {
 }
 
 func query(q string) {
-	rsp, err := http.Get(servAddr + "/v1/query?q=" + url.QueryEscape(q))
+	client := &http.Client{Timeout: time.Duration(10 * time.Second)}
+
+	req, err := http.NewRequest("GET", servAddr+"/v1/query?q="+url.QueryEscape(q), nil)
+	if err != nil {
+		fmt.Println("Failed to create request: " + err.Error())
+		os.Exit(1)
+	}
+
+	rsp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error while making request: " + err.Error())
 		os.Exit(1)
