@@ -58,6 +58,10 @@ chmod 755 /usr/local/bin/borg
 Now you are ready to rock! Query with `borg "my query"`, because there is a server listening to your questions and eager to help!
 Keep querying, and let me know if you want something to be improved.
 
+##### Running with docker
+
+If you are using docker, you can use [dockerized borg client](https://github.com/juhofriman/borg-docker).
+
 #### How it works
 
 The client connects to a server at borg.crufter.com, but you can host your own if you want to (see daemon folder).
