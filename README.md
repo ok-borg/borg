@@ -2,7 +2,7 @@
 
 BORG - A terminal based search engine for bash commands
 ===
-![](https://img.shields.io/badge/cruft-guaranteed-green.svg)
+![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg)
 
 Borg was built out of the frustration of having to leave the terminal to search for bash commands.
 Its succinct output also makes it easier to glance over sources
