@@ -82,3 +82,7 @@ Self hosting will become less appealing once people start contributing their own
 - add a way to add public, private and organisation private entries
 - enabling users to rate solutions
 - way more, but first let's tackle the ones above =)
+
+#### Credits
+
+The borg mascot has been delivered to you by the amazing [Fabricio Rosa Marques](https://dribbble.com/fabric8).
