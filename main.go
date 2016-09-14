@@ -18,6 +18,7 @@ var (
 	f = flag.Bool("f", false, "Print full results, ie. no more '...'")
 	l = flag.Int("l", 5, "Result list limit. Defaults to 5")
 	h = flag.String("h", "borg.crufter.com", "Server to connect to")
+	p = flag.Bool("p", false, "Private search. Your search won't leave a trace. Pinky promise. Don't use this all the time if you want to see the search result relevancy improved")
 )
 
 func host() string {
@@ -42,7 +43,7 @@ func help() {
 
 func query(q string) {
 	client := &http.Client{Timeout: time.Duration(10 * time.Second)}
-	req, err := http.NewRequest("GET", fmt.Sprintf("%v/v1/query?l=%v&q=%v", host(), *l, url.QueryEscape(q)), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%v/v1/query?l=%v&p=%v&q=%v", host(), *l, *p, url.QueryEscape(q)), nil)
 	if err != nil {
 		fmt.Println("Failed to create request: " + err.Error())
 		os.Exit(1)

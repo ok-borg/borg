@@ -37,11 +37,16 @@ func query(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	if err == nil && s > 0 {
 		size = int(s)
 	}
-	if s > 50 {
-		s = 50
+	if size > 50 {
+		size = 50
 	}
+	q := r.FormValue("q")
+	if r.FormValue("p") == "true" {
+		q = "PRIVATE"
+	}
+	log.Infof("Querying '%v' with size '%v'", q, size)
 	res, err := client.Search().Index("borg").Type("problem").From(0).Size(size).Query(
-		elastic.NewQueryStringQuery(r.FormValue("q"))).Do()
+		elastic.NewQueryStringQuery(q)).Do()
 	if err != nil {
 		panic(err)
 	}
