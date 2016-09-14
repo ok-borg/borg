@@ -86,3 +86,26 @@ Self hosting will become less appealing once people start contributing their own
 #### Credits
 
 The borg mascot has been delivered to you by the amazing [Fabricio Rosa Marques](https://dribbble.com/fabric8).
+
+#### Usage
+
+Borg supports gnu flags, so flags are supported both before and after the arguments, so all of the followings are valid:
+
+```
+borg -l 1 -f "md5 Mac"
+borg "md5 Mac" -l 1 -f
+borg -f "md5 Mac" -l 1
+```
+
+But what do they do?
+
+```
+-f  (= false)
+    Print full results, ie. no more '...'
+-h (= "borg.crufter.com")
+    Server to connect to
+-l  (= 5)
+    Result list limit. Defaults to 5
+-p  (= false)
+    Private search. Your search won't leave a trace. Pinky promise. Don't use this all the time if you want to see the search result relevancy improved
+```
