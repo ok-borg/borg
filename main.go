@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"github.com/crufter/borg/types"
+	flag "github.com/juju/gnuflag"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -14,28 +14,39 @@ import (
 	"time"
 )
 
-const (
-	servAddr = "http://borg.crufter.com:9992"
+var (
+	f = flag.Bool("f", false, "Print full results, ie. no more '...'")
+	l = flag.Int("l", 5, "Result list limit. Defaults to 5")
+	h = flag.String("h", "borg.crufter.com", "Server to connect to")
 )
 
+func host() string {
+	return fmt.Sprintf("http://%v:9992", *h)
+}
+
 func main() {
-	flag.Parse()
-	if flag.Arg(0) != "" {
-		query(flag.Arg(0))
-	} else {
-		fmt.Println("Usage: borg \"your question\"")
+	flag.Parse(true)
+	if flag.NArg() == 0 {
+		help()
+		return
 	}
+	switch flag.Arg(0) {
+	default:
+		query(flag.Arg(0))
+	}
+}
+
+func help() {
+	fmt.Println("Usage: borg \"your question\"")
 }
 
 func query(q string) {
 	client := &http.Client{Timeout: time.Duration(10 * time.Second)}
-
-	req, err := http.NewRequest("GET", servAddr+"/v1/query?q="+url.QueryEscape(q), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%v/v1/query?l=%v&q=%v", host(), *l, url.QueryEscape(q)), nil)
 	if err != nil {
 		fmt.Println("Failed to create request: " + err.Error())
 		os.Exit(1)
 	}
-
 	rsp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error while making request: " + err.Error())
@@ -52,6 +63,10 @@ func query(q string) {
 		fmt.Println("Malformed response from server")
 		os.Exit(1)
 	}
+	renderQuery(problems)
+}
+
+func renderQuery(problems []types.Problem) {
 	const padding = 4
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', tabwriter.AlignRight)
 	for i, prob := range problems {
@@ -78,7 +93,7 @@ func query(q string) {
 					}
 					fmt.Fprintln(w, t, strings.Trim(bodyPartLine, "\n"))
 					line++
-					if line == 10 {
+					if line == 10 && *f == false {
 						fmt.Fprintln(w, "\t", "...", "\t")
 						break Loop
 					}
