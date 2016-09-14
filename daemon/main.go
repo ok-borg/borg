@@ -7,9 +7,9 @@ import (
 	"github.com/crufter/borg/types"
 	httpr "github.com/julienschmidt/httprouter"
 	"github.com/olivere/elastic"
-	"io/ioutil"
 	"net/http"
 	"reflect"
+	"strconv"
 )
 
 var (
@@ -27,15 +27,20 @@ func init() {
 func main() {
 	r := httpr.New()
 	r.GET("/v1/query", query)
-	//r.PUT("/v1/problem/:id", update)
-	//r.POST("/v1/problem", save)
-	//r.POST()
 	log.Info("Starting http server")
 	log.Critical(http.ListenAndServe(fmt.Sprintf(":%v", 9992), r))
 }
 
 func query(w http.ResponseWriter, r *http.Request, p httpr.Params) {
-	res, err := client.Search().Index("borg").Type("problem").From(0).Size(5).Query(
+	size := 5
+	s, err := strconv.ParseInt(r.FormValue("l"), 10, 32)
+	if err == nil && s > 0 {
+		size = int(s)
+	}
+	if s > 50 {
+		s = 50
+	}
+	res, err := client.Search().Index("borg").Type("problem").From(0).Size(size).Query(
 		elastic.NewQueryStringQuery(r.FormValue("q"))).Do()
 	if err != nil {
 		panic(err)
@@ -52,18 +57,4 @@ func query(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 		panic(err)
 	}
 	fmt.Fprint(w, string(bs))
-}
-
-func save(w http.ResponseWriter, r *http.Request, p httpr.Params) {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		panic(err)
-	}
-	b64encoded := []string{}
-	err = json.Unmarshal(body, &b64encoded)
-	if err != nil {
-		panic(err)
-	}
-	ss := []types.Solution{}
-	log.Debugf("Putting services %v", ss)
 }
