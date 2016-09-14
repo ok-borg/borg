@@ -7,7 +7,7 @@
     # webserver
     - name: stop service
       ignore_errors: true
-      shell: service webserver stop
+      shell: service borgd stop
     - name: copy borgd service
       copy: src=./borgd.service dest=/lib/systemd/system/borgd.service
     - name: copy binary
