@@ -42,7 +42,7 @@ func query(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	}
 	q := r.FormValue("q")
 	if r.FormValue("p") == "true" {
-		log.Info("Private query with size '%v'", size)
+		log.Infof("Private query with size '%v'", size)
 	} else {
 		log.Infof("Querying '%v' with size '%v'", q, size)
 	}
