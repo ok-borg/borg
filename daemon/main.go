@@ -42,8 +42,7 @@ func (l *Logger) Printf(str string, i ...interface{}) {
 
 func init() {
 	flag.Parse()
-	l := Logger{}
-	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(fmt.Sprintf("http://%v", *esAddr)), elastic.SetTraceLog(&l))
+	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(fmt.Sprintf("http://%v", *esAddr)))
 	if err != nil {
 		panic(err)
 	}
