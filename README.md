@@ -39,10 +39,10 @@ $ borg "list all files in dir"
 (Only displaying the first 2 hits here, but that's configurable, by default it's 5)
 
 Some explanations for the UI:
-- () denotes hits for your query
-- [] denotes possible solutions
-- ... under a [] means more lines to display
-- a - in a solution means separate code examples extracted from the same source
+- `()` denotes hits for your query
+- `[]` denotes possible solutions
+- `...` under a `[]` means more lines to display (use the `-f` flag for full display, see more about usage below)
+- a `-` in a solution means separate code snippets extracted from the same source
 
 #### State
 
