@@ -52,12 +52,19 @@ The relevancy of the results, the interface, and the available features in gener
 
 #### Installation
 
-Just do a `go install`, or if you don't have Go installed there are builds in the build folder - pick one according to your environment.
+Just do a `go install`, or if you don't have Go installed check out the [releases](https://github.com/crufter/borg/releases) and download the appropriate binary for your system. 
 
-It should be something like (this one is for linux):
+For example, for Linux:
 
 ```
-wget https://github.com/crufter/borg/blob/master/builds/borg_linux_amd64\?raw\=true -O /usr/local/bin/borg
+wget https://github.com/crufter/borg/releases/download/v0.0.1/borg_linux_amd64 -O /usr/local/bin/borg
+chmod 755 /usr/local/bin/borg
+```
+
+Or Mac:
+
+```
+wget https://github.com/crufter/borg/releases/download/v0.0.1/borg_darwin_amd64 -O /usr/local/bin/borg
 chmod 755 /usr/local/bin/borg
 ```
 
@@ -66,7 +73,7 @@ Keep querying, and let me know if you want something to be improved.
 
 ##### Running with docker
 
-If you are using docker, you can use [dockerized borg client](https://github.com/juhofriman/borg-docker).
+You can use the [dockerized borg client](https://github.com/juhofriman/borg-docker) if you don't want to install anything on your host!
 
 #### How it works
 
