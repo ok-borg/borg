@@ -54,7 +54,6 @@ func main() {
 		Endpoint: oauth2.Endpoint{
 			TokenURL: githubTokenURL,
 		},
-		//RedirectURL: redirectUrl,
 		Scopes: []string{"read:org"},
 	}
 	aut = auth.NewAuth(oauthCfg, client)
@@ -73,7 +72,7 @@ func githubAuth(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	}
 	user, err := aut.GithubAuth(string(body))
 	if err != nil {
-		fmt.Fprintln(w, fmt.Sprintf("there was an issue getting your token: %v", err))
+		fmt.Fprintln(w, fmt.Sprintf("Auth failed: %v", err))
 		return
 	}
 	bs, err := json.Marshal(user)

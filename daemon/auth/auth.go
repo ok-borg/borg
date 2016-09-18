@@ -24,12 +24,15 @@ type Auth struct {
 }
 
 func (auth *Auth) GithubAuth(code string) (*User, error) {
+	if len(code) == 0 {
+		return nil, errors.New("Code received is empty")
+	}
 	tkn, err := auth.oauthCfg.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("there was an issue getting your token: %v", err))
 	}
 	if !tkn.Valid() {
-		return nil, errors.New("retreived invalid token")
+		return nil, errors.New("Reretreived invalid token")
 	}
 	client := github.NewClient(auth.oauthCfg.Client(oauth2.NoContext, tkn))
 	user, _, err := client.Users.Get("")
