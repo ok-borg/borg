@@ -99,9 +99,9 @@ The borg mascot has been delivered to you by the amazing [Fabricio Rosa Marques]
 Borg supports gnu flags, so flags are supported both before and after the arguments, so all of the followings are valid:
 
 ```
-borg -l 1 -f "md5 Mac"
-borg "md5 Mac" -l 1 -f
-borg -f "md5 Mac" -l 1
+borg -l 30 -f "md5 Mac"
+borg "md5 Mac" -l30 -f
+borg -f "md5 Mac" -l30
 ```
 
 But what do they do?
