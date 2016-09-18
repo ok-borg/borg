@@ -60,6 +60,8 @@ func main() {
 	r := httpr.New()
 	r.GET("/v1/query", query)
 	r.POST("/v1/auth/github", githubAuth)
+	// authenticated endpoints
+	r.GET("/v1/user", getUser)
 	handler := cors.Default().Handler(r)
 	log.Info("Starting http server")
 	log.Critical(http.ListenAndServe(fmt.Sprintf(":%v", 9992), handler))
@@ -73,6 +75,23 @@ func githubAuth(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	user, err := aut.GithubAuth(string(body))
 	if err != nil {
 		fmt.Fprintln(w, fmt.Sprintf("Auth failed: %v", err))
+		return
+	}
+	bs, err := json.Marshal(user)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprint(w, string(bs))
+}
+
+func getUser(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	user, err := aut.GetUser(r.FormValue("token"))
+	if err != nil {
+		fmt.Fprintln(w, fmt.Sprintf("Getting user failed: %v", err))
+		return
+	}
+	if user == nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 	bs, err := json.Marshal(user)

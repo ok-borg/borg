@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/go-github/github"
-	"github.com/ventu-io/go-shortid"
+	//"github.com/ventu-io/go-shortid"
 	"golang.org/x/oauth2"
 	"gopkg.in/olivere/elastic.v2"
 
@@ -44,11 +44,17 @@ func (auth *Auth) GithubAuth(code string) (*User, error) {
 		return nil, errors.New(fmt.Sprintf("error converting user: %v", err))
 	}
 	usr.Token = tkn.AccessToken
+	// we just set the user every time for now. reuse github id. save token next to it. identify
+	// user by querying users with that token.
 	err = auth.setUser(*usr)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("error converting user: %v", err))
 	}
 	return usr, nil
+}
+
+func (auth *Auth) GetUser(token string) (*User, error) {
+	return auth.readUser("Token", token)
 }
 
 type User struct {
@@ -66,21 +72,18 @@ func toUser(user *github.User) (*User, error) {
 	case user.Name == nil:
 		return nil, errors.New("User has no email")
 	}
-	id, err := shortid.Generate()
-	if err != nil {
-		return nil, err
-	}
+	id := fmt.Sprintf("%v", *user.ID)
 	ret := &User{
 		Id:       id,
 		Email:    *user.Email,
 		Name:     *user.Name,
-		SourceId: fmt.Sprintf("%v", *user.ID),
+		SourceId: id,
 	}
 	return ret, nil
 }
 
-func (auth *Auth) readUser(email string) (*User, error) {
-	termQuery := elastic.NewTermQuery("Email", email)
+func (auth *Auth) readUser(field, equalsTo string) (*User, error) {
+	termQuery := elastic.NewTermQuery(field, equalsTo)
 	res, err := auth.client.Search().Index("borg").Type("user").Query(termQuery).From(0).Size(2).Do()
 	if err != nil {
 		return nil, err
@@ -96,7 +99,7 @@ func (auth *Auth) readUser(email string) (*User, error) {
 	case len(users) == 0:
 		return nil, nil
 	case len(users) > 1:
-		return nil, errors.New("Multiple users found with email " + email)
+		return nil, errors.New(fmt.Sprintf("Multiple users found with %v %v ", field, equalsTo))
 	}
 	return &users[0], nil
 }
