@@ -1,0 +1,27 @@
+<div id="index" class="row">
+	<div class="center row col-xs-9">
+		<div class="row logorow">
+			<img id="logo" src="https://github.com/crufter/borg/raw/master/borg_mascot.png" />
+		</div>
+		<div id="index-form" class="row">
+			<form novalidate id="quoteForm" class="simple-form" ng-submit="query()">
+    	    	<input ng-keydown="keyd()" type="text" autofocus />
+			</form>
+		</div>
+		<div ng-if="isLoggedIn" class="row logbox">
+			<div class="col-xs-6 paddingzero">
+				<a href="/create">Save your own snippet</a>
+			</div>
+			<div class="col-xs-6 paddingzero">
+				<span class="pull-right">
+					Logged in as <a href="/me">{{user.Email}}</a>
+				</span>
+			</div>
+		</div>
+		<div ng-if="!isLoggedIn" class="row logbox">
+			<div class="col-xs-12">
+				<a href="https://github.com/login/oauth/authorize?client_id=9800fe821ffc8b2cefc4&scope=read:org">Log in with github</a> to create your own content
+			</div>
+		</div>
+	</div>
+</div>
