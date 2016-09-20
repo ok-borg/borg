@@ -1,0 +1,35 @@
+<div ng-controller="HeaderController" ng-include="'partials/header.html'"></div>
+
+<div class="page">
+    <div class="row">
+        <div class="col-xs-12">
+            <h1>
+                My profile
+            </h1>
+        </div>
+    </div>
+    <div class="row">
+            <div class="col-xs-2">
+                Name:
+            </div>
+            <div class="col-xs-10">
+                {{user.Name}}   
+            </div>
+    </div>
+    <div class="row">
+            <div class="col-xs-2">
+                Email:
+            </div>
+            <div class="col-xs-10">
+                {{user.Email}}   
+            </div>
+     </div>
+     <div class="row">
+            <div class="col-xs-2">
+                Token:
+            </div>
+            <div class="col-xs-10">
+                <a href="#" ng-click="copyToClipboard()">Copy your token to clipboard for terminal use</a>
+            </div>
+      </div>
+</div>

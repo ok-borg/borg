@@ -1,6 +1,7 @@
 var app = angular.module('app', ['ngCookies', 'ui.router']);
 
 const url = "http://ok-b.org:9992"
+const tokenMinLen = 10
 
 app.directive('a', function() {
     return {
@@ -69,10 +70,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
             templateUrl: 'partials/login.html',
             controller: 'LoginController',
         })
-		.state('myEntries', {
-			url: '/my/entries',
-			templateUrl: 'partials/login.html',
-			controller: 'MyEntriesController',
+		.state('me', {
+			url: '/me',
+			templateUrl: 'partials/me.html',
+			controller: 'MeController',
 		});
 });
 
@@ -87,8 +88,7 @@ app.controller('IndexController', function(Session, $state, $interval, $scope, $
         });
     }
 	$scope.user = {};
-	$scope.isLoggedIn = Session.getToken().length > 9;
-	console.log(Session.getToken().length)
+	$scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
 	Session.getUser(function(usr) {
 		console.log(usr);
         $scope.user = usr;	
@@ -96,25 +96,27 @@ app.controller('IndexController', function(Session, $state, $interval, $scope, $
 });
 
 app.controller('SearchController', function(Session, $state, $interval, $scope, $http) {
-	$scope.query = function() {
-        $http.get(url + '/query', {
-            "token": Session.getToken(),
-        }).then(function(rsp){
-        	
-		}).catch(function(rsp) {
-            console.log(rsp);
-        });
-    }
-	var user = {};
-	var isLoggedIn = Session.getToken().length > 10;
-	Session.getUser(function(usr) {
-		user = usr;	
-	})
 });
 
 
-app.controller('MyEntriesController', function(Session, $state, $interval, $scope, $http) {
-	console.log("Coming soon");
+app.controller('MeController', function(Session, $state, $interval, $scope, $http) {
+	$scope.user = {};
+	$scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
+	Session.getUser(function(usr) {
+		console.log(usr);
+        $scope.user = usr;	
+	})
+	$scope.copyToClipboard = function() {
+  		window.prompt("Copy this, press enter to close", Session.getToken());
+	}
+});
+
+app.controller('HeaderController', function(Session, $state, $interval, $scope, $http) {
+    $scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
+	Session.getUser(function(usr) {
+		console.log(usr);
+        $scope.user = usr;	
+	})
 });
 
 // remove this cruft once getting get params from ui.router works, ehh
@@ -127,7 +129,7 @@ function gup( name, url ) {
       return results == null ? null : results[1];
 }
 
-// Login and registration page
+// Login page that exchanges the code for a token, then stores the token in a cookie
 app.controller('LoginController', function(Session, $scope, $http, $rootScope, $state) {
     var code = gup("code");
 	$http.post(url + '/v1/auth/github', code).then(function(rsp) {
@@ -142,29 +144,3 @@ app.controller('LoginController', function(Session, $scope, $http, $rootScope, $
 	});
 });
 
-app.controller('LoginBoxController', function(Session, $state, $scope, $rootScope) {
-    if (Session.getToken().length > 0) {
-        $scope.loggedIn = true;
-        $scope.user = Session.getUser(function(usr){
-            $scope.user = usr;
-        });
-    }
-    $rootScope.$on('loginToken', function(ev, dat) {
-        $scope.loggedIn = true;
-        var cb = function(usr) {
-            $scope.user = usr;
-            // slightly crufty
-            if (usr.Group === 1) {
-                $state.go('customerHire');
-            } else {
-                $state.go('providerJobsWaiting');
-            }
-        }
-        Session.getUser(cb);
-    });
-    $scope.logout = function() {
-        Session.logout();
-        $scope.loggedIn = false;
-        $state.go('login');
-    };
-});
