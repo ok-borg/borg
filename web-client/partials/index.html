@@ -20,7 +20,7 @@
 		</div>
 		<div ng-if="!isLoggedIn" class="row top-buffer">
 			<div class="col-xs-12">
-				<a href="https://github.com/login/oauth/authorize?client_id=9800fe821ffc8b2cefc4&scope=read:org">Log in with github</a> to create your own content
+				<a href="{{apiBaseUrl}}/v1/redirect/github/authorize">Log in with github</a> to create your own content
 			</div>
 		</div>
 	</div>
