@@ -35,16 +35,16 @@ app.factory('Session', function($http, $cookies, $q, $window) {
         },
         getUser: function(cb) {
             var that = this;
-			var scb = function(rsp) {
-				user = rsp.data;
+			      var scb = function(rsp) {
+				        user = rsp.data;
                 cb(user);
             };
             if (!user || !user.Id) {
-				var token = this.getToken();
+				        var token = this.getToken();
                 $http({
-					method: 'GET',
-					url: url + '/v1/user?token=' + token,
-				}).then(scb);
+					          method: 'GET',
+					          url: url + '/v1/user?token=' + token,
+				        }).then(scb);
             } else {
                 cb(user);
             }
@@ -107,7 +107,6 @@ app.controller('IndexController', function(Session, $state, $interval, $scope, $
 	$scope.user = {};
 	$scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
 	Session.getUser(function(usr) {
-		console.log(usr);
         $scope.user = usr;	
 	})
 });
@@ -229,7 +228,7 @@ app.controller('LoginController', function(Session, $scope, $http, $rootScope, $
 			$state.go('index');
 		} 
     }).catch(function(rsp) {
-		console.log(rsp);
+        console.log(rsp);
 	});
 });
 
