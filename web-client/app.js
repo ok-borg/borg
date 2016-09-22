@@ -24,22 +24,22 @@ app.factory('Session', function($http, $cookies, $q) {
         },
         getToken: function() {
             if ($cookies.token !== undefined) {
-				return $cookies.token;
+				        return $cookies.token;
             }
             return "";
         },
         getUser: function(cb) {
             var that = this;
-			var scb = function(rsp) {
-				user = rsp.data;
+			      var scb = function(rsp) {
+				        user = rsp.data;
                 cb(user);
             };
             if (!user || !user.Id) {
-				var token = this.getToken();
+				        var token = this.getToken();
                 $http({
-					method: 'GET',
-					url: url + '/v1/user?token=' + token,
-				}).then(scb);
+					          method: 'GET',
+					          url: url + '/v1/user?token=' + token,
+				        }).then(scb);
             } else {
                 cb(user);
             }
@@ -78,24 +78,26 @@ app.config(function ($stateProvider, $urlRouterProvider) {
 });
 
 app.controller('IndexController', function(Session, $state, $interval, $scope, $http) {
-	$scope.query = function() {
+    $scope.apiBaseUrl = url;
+	  $scope.query = function() {
         $http.get(url + '/query', {
             "token": Session.getToken(),
         }).then(function(rsp){
         		
-		}).catch(function(rsp) {
+		    }).catch(function(rsp) {
             console.log(rsp);
         });
     }
-	$scope.user = {};
-	$scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
-	Session.getUser(function(usr) {
-		console.log(usr);
+	  $scope.user = {};
+	  $scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
+	  Session.getUser(function(usr) {
+		    console.log(usr);
         $scope.user = usr;	
-	})
+	  })
 });
 
 app.controller('SearchController', function(Session, $state, $interval, $scope, $http) {
+    $scope.apiBaseUrl = url;
 });
 
 
@@ -132,15 +134,15 @@ function gup( name, url ) {
 // Login page that exchanges the code for a token, then stores the token in a cookie
 app.controller('LoginController', function(Session, $scope, $http, $rootScope, $state) {
     var code = gup("code");
-	$http.post(url + '/v1/auth/github', code).then(function(rsp) {
-		if (!rsp.data.Token) {
-			$scope.error = rsp.data;
-		} else {
-			Session.setToken(rsp.data.Token);
-			$state.go('search');
-		} 
+	  $http.post(url + '/v1/auth/github', code).then(function(rsp) {
+		    if (!rsp.data.Token) {
+			      $scope.error = rsp.data;
+		    } else {
+			      Session.setToken(rsp.data.Token);
+			      $state.go('search');
+		    } 
     }).catch(function(rsp) {
-		console.log(rsp);
-	});
+		    console.log(rsp);
+	  });
 });
 

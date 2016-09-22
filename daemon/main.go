@@ -4,6 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"reflect"
+	"strconv"
+
 	log "github.com/cihub/seelog"
 	"github.com/crufter/borg/daemon/auth"
 	"github.com/crufter/borg/types"
@@ -11,10 +16,6 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/oauth2"
 	"gopkg.in/olivere/elastic.v2"
-	"io/ioutil"
-	"net/http"
-	"reflect"
-	"strconv"
 )
 
 const (
@@ -58,6 +59,7 @@ func main() {
 	}
 	aut = auth.NewAuth(oauthCfg, client)
 	r := httpr.New()
+	r.GET("/v1/redirect/github/authorize", redirectGithubAuthorize)
 	r.GET("/v1/query", query)
 	r.POST("/v1/auth/github", githubAuth)
 	// authenticated endpoints
@@ -65,6 +67,16 @@ func main() {
 	handler := cors.Default().Handler(r)
 	log.Info("Starting http server")
 	log.Critical(http.ListenAndServe(fmt.Sprintf(":%v", 9992), handler))
+}
+
+// just redirect the user with the url to the github oauth login with the client_id
+// setted in the backend
+func redirectGithubAuthorize(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	url := fmt.Sprintf(
+		"https://github.com/login/oauth/authorize?client_id=%s&scope=read:org",
+		*githubClientId,
+	)
+	http.Redirect(w, r, url, http.StatusSeeOther)
 }
 
 func githubAuth(w http.ResponseWriter, r *http.Request, p httpr.Params) {
