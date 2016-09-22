@@ -5,7 +5,7 @@
 		</div>
 		<div id="big-search" class="row">
 			<form novalidate id="quoteForm" class="simple-form" ng-submit="submit()">
-    	    	<input ng-keydown="keyd()" type="text" autofocus />
+    	    	<input ng-model="query" ng-keydown="keyd()" type="text" autofocus />
 			</form>
 		</div>
 		<div ng-if="isLoggedIn" class="row top-buffer">

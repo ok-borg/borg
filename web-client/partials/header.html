@@ -6,8 +6,8 @@
 	</a>
     <div class="col-xs-7">
         <div id="small-search" class="row">
-			<form novalidate id="quoteForm" class="simple-form" ng-submit="query()">
-    	    	<input ng-keydown="keyd()" type="text" autofocus />
+			<form novalidate id="quoteForm" class="simple-form" ng-submit="submit()">
+    	    	<input ng-model="formData.query" type="text" autofocus />
 			</form>
 		</div>
     </div>

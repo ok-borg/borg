@@ -16,15 +16,20 @@ app.directive('a', function() {
    };
 });
 
-app.factory('Session', function($http, $cookies, $q) {
+app.factory('Session', function($http, $cookies, $q, $window) {
     var user = {};
     var Session = {
         setToken: function(val) {
-            $cookies.token = val;
+            var now = new $window.Date();
+            var exp = new $window.Date(now.getFullYear(), now.getMonth()+6, now.getDate());
+            $cookies.put('token', val, {
+                expires: exp
+            })
         },
         getToken: function() {
-            if ($cookies.token !== undefined) {
-				return $cookies.token;
+            var token = $cookies.get('token');
+            if (token !== undefined) {
+				return token;
             }
             return "";
         },
@@ -61,14 +66,32 @@ app.config(function ($stateProvider, $urlRouterProvider) {
             controller: 'IndexController'
         })
 		.state('search', {
-            url: '/',
+            url: '/s/:query',
             templateUrl: 'partials/search.html',
-            controller: 'SearchController'
+            controller: 'SearchController',
+            params: {
+                query: ""
+            }
         })
         .state('login', {
             url: '/login',
             templateUrl: 'partials/login.html',
             controller: 'LoginController',
+        })
+        .state('single', {
+            url: '/t/:id/:slug',
+            templateUrl: 'partials/single.html',
+            controller: 'SingleController',
+        })
+        .state('edit', {
+            url: '/edit/:id',
+            templateUrl: 'partials/edit.html',
+            controller: 'EditController',
+        })
+        .state('new', {
+            url: '/new/:id',
+            templateUrl: 'partials/edit.html',
+            controller: 'NewController',
         })
 		.state('me', {
 			url: '/me',
@@ -78,14 +101,8 @@ app.config(function ($stateProvider, $urlRouterProvider) {
 });
 
 app.controller('IndexController', function(Session, $state, $interval, $scope, $http) {
-	$scope.query = function() {
-        $http.get(url + '/query', {
-            "token": Session.getToken(),
-        }).then(function(rsp){
-        		
-		}).catch(function(rsp) {
-            console.log(rsp);
-        });
+	$scope.submit = function() {
+   		$state.go('search', {query: $scope.query});
     }
 	$scope.user = {};
 	$scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
@@ -96,14 +113,78 @@ app.controller('IndexController', function(Session, $state, $interval, $scope, $
 });
 
 app.controller('SearchController', function(Session, $state, $interval, $scope, $http) {
+	var search = function(q) {
+		$http.get(url + '/v1/query', {
+            params: {
+				"t": Session.getToken(),
+				"q": q
+			}
+     	}).then(function(rsp){
+			$scope.results = rsp.data;
+		}).catch(function(rsp) {
+            console.log(rsp);
+    	});
+	}
+	$scope.slugify = function(text) {
+		return text
+        .toLowerCase()
+        .replace(/[^\w ]+/g,'')
+        .replace(/ +/g,'-')
+	}
+	$scope.body = function(bodies) {
+        return bodies.join("\n")
+	}
+	search($state.params.query);
+	$scope.$on('query-submitted', function(event, args) {
+        $state.go('search', {query: args.query});
+        search(args.query);
+	});
 });
 
+app.controller('SingleController', function(Session, $state, $interval, $scope, $http) {
+	var f = function() {
+		$http.get(url + '/v1/read/' + $state.params.id).then(function(rsp){
+			$scope.single = rsp.data;
+		}).catch(function(rsp) {
+            console.log(rsp);
+    	});
+	}
+	f()
+	$scope.slugify = function(text) {
+		return text
+        .toLowerCase()
+        .replace(/[^\w ]+/g,'')
+        .replace(/ +/g,'-')
+	}
+	$scope.body = function(bodies) {
+        return bodies.join("\n")
+	}
+});
+
+app.controller('EditController', function(Session, $state, $interval, $scope, $http) {
+	var f = function() {
+		$http.get(url + '/v1/read/' + $state.params.id).then(function(rsp){
+			$scope.single = rsp.data;
+		}).catch(function(rsp) {
+            console.log(rsp);
+    	});
+	}
+	f()
+	$scope.slugify = function(text) {
+		return text
+        .toLowerCase()
+        .replace(/[^\w ]+/g,'')
+        .replace(/ +/g,'-')
+	}
+	$scope.body = function(bodies) {
+        return bodies.join("\n")
+	}
+});
 
 app.controller('MeController', function(Session, $state, $interval, $scope, $http) {
 	$scope.user = {};
 	$scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
 	Session.getUser(function(usr) {
-		console.log(usr);
         $scope.user = usr;	
 	})
 	$scope.copyToClipboard = function() {
@@ -111,12 +192,20 @@ app.controller('MeController', function(Session, $state, $interval, $scope, $htt
 	}
 });
 
-app.controller('HeaderController', function(Session, $state, $interval, $scope, $http) {
-    $scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
+app.controller('HeaderController', function(Session, $state, $rootScope, $scope) {
+    $scope.formData = {query: $state.params.query};
+	$scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
 	Session.getUser(function(usr) {
-		console.log(usr);
         $scope.user = usr;	
 	})
+	$scope.submit = function() {
+		if ($state.current.name != 'search') {
+			$state.go('search', {query: $scope.formData.query});
+            return;
+		}
+        console.log("iii", $scope.query)
+		$rootScope.$broadcast('query-submitted', {query: $scope.formData.query});
+	}
 });
 
 // remove this cruft once getting get params from ui.router works, ehh
@@ -137,7 +226,7 @@ app.controller('LoginController', function(Session, $scope, $http, $rootScope, $
 			$scope.error = rsp.data;
 		} else {
 			Session.setToken(rsp.data.Token);
-			$state.go('search');
+			$state.go('index');
 		} 
     }).catch(function(rsp) {
 		console.log(rsp);

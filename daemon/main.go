@@ -60,6 +60,7 @@ func main() {
 	r := httpr.New()
 	r.GET("/v1/query", query)
 	r.POST("/v1/auth/github", githubAuth)
+	r.GET("/v1/read/:id", read)
 	// authenticated endpoints
 	r.GET("/v1/user", getUser)
 	handler := cors.Default().Handler(r)
@@ -81,6 +82,15 @@ func githubAuth(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Fprint(w, string(bs))
+}
+
+func read(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	res, err := client.Get().Index("borg").Type("problem").Id(p.ByName("id")).Do()
+	if err != nil {
+		panic(err)
+	}
+	bs, _ := res.Source.MarshalJSON()
 	fmt.Fprint(w, string(bs))
 }
 
