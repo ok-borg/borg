@@ -101,7 +101,8 @@ app.config(function ($stateProvider, $urlRouterProvider) {
 });
 
 app.controller('IndexController', function(Session, $state, $interval, $scope, $http) {
-	$scope.submit = function() {
+	$scope.apiBaseUrl = url;
+    $scope.submit = function() {
    		$state.go('search', {query: $scope.query});
     }
 	$scope.user = {};
