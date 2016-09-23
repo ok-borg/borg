@@ -64,11 +64,23 @@ func main() {
 	r.POST("/v1/auth/github", githubAuth)
 	r.GET("/v1/read/:id", read)
 	// authenticated endpoints
-
 	r.GET("/v1/user", ifAuth(getUser))
+
+	// snippets
+	r.GET("/v1/snippet/:id", ifAuth(getSnippet))
+	r.POST("/v1/snippet", ifAuth(createSnippet))
+	r.DELETE("/v1/snippet/:id", ifAuth(deleteSnippet))
+	r.PUT("/v1/snippet", ifAuth(updateSnippet))
+	r.GET("/v1/search/snippet", ifAuth(searchSnippet))
+
 	handler := cors.Default().Handler(r)
 	log.Info("Starting http server")
 	log.Critical(http.ListenAndServe(fmt.Sprintf(":%v", 9992), handler))
+}
+
+func writeJsonResponse(w http.ResponseWriter, status int, body interface{}) {
+	rawBody, _ := json.Marshal(body)
+	writeResponse(w, status, string(rawBody))
 }
 
 func writeResponse(w http.ResponseWriter, status int, body string) {
