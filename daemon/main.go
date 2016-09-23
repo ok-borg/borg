@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -8,6 +9,8 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+	"sync"
+	"time"
 
 	log "github.com/cihub/seelog"
 	"github.com/crufter/borg/daemon/auth"
@@ -29,11 +32,34 @@ var (
 )
 
 var (
-	client *elastic.Client
-	aut    *auth.Auth
+	client                 *elastic.Client
+	aut                    *auth.Auth
+	accessControl          map[string]UserAccess
+	mtx                    = &sync.Mutex{}
+	lastAccessControlReset = time.Now()
+)
+
+type AccessKinds int
+
+// FIXME(jeremy): should be in config
+// maximum access for write and updates
+const (
+	maxCreate = 100
+	maxUpdate = 50
+)
+
+// acces kings
+const (
+	Create AccessKinds = iota
+	Update
 )
 
 type Logger struct{}
+
+type UserAccess struct {
+	Update int
+	Create int
+}
 
 func (l *Logger) Printf(str string, i ...interface{}) {
 	fmt.Println(fmt.Sprintf(str, i...))
@@ -46,6 +72,7 @@ func init() {
 		panic(err)
 	}
 	client = cl
+	accessControl = map[string]UserAccess{}
 }
 
 func main() {
@@ -62,16 +89,15 @@ func main() {
 	r.GET("/v1/redirect/github/authorize", redirectGithubAuthorize)
 	r.GET("/v1/query", query)
 	r.POST("/v1/auth/github", githubAuth)
-	r.GET("/v1/read/:id", read)
+
 	// authenticated endpoints
 	r.GET("/v1/user", ifAuth(getUser))
 
 	// snippets
-	r.GET("/v1/snippet/:id", ifAuth(getSnippet))
-	r.POST("/v1/snippet", ifAuth(createSnippet))
-	r.DELETE("/v1/snippet/:id", ifAuth(deleteSnippet))
-	r.PUT("/v1/snippet", ifAuth(updateSnippet))
-	r.GET("/v1/search/snippet", ifAuth(searchSnippet))
+	r.GET("/v1/p/:id", ifAuth(getSnippet))
+	r.POST("/v1/p", ifAuth(controlAccess(createSnippet, Create)))
+	r.DELETE("/v1/p/:id", ifAuth(controlAccess(deleteSnippet, Update)))
+	r.PUT("/v1/p", ifAuth(updateSnippet))
 
 	handler := cors.Default().Handler(r)
 	log.Info("Starting http server")
@@ -90,9 +116,70 @@ func writeResponse(w http.ResponseWriter, status int, body string) {
 	fmt.Fprintf(w, `%v`, body)
 }
 
+func updateTimer() {
+	mtx.Lock()
+	// if last reset was 24 or more ago
+	if time.Since(lastAccessControlReset) >= (time.Hour * 24) {
+		// reset the time
+		lastAccessControlReset = time.Now()
+		accessControl = map[string]UserAccess{}
+	}
+
+	mtx.Unlock()
+}
+
+func controlAccess(handler func(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params), ctrl AccessKinds) func(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
+		// get the token from the context
+		token := ctx.Value("token").(string)
+
+		// check if we need to reset the map
+
+		mtx.Lock()
+		// check if the user can still write
+		if ctrl == Create {
+			if ac, ok := accessControl[token]; !ok {
+				newAc := UserAccess{Create: 1}
+				accessControl[token] = newAc
+			} else {
+				if ac.Create >= maxCreate {
+					writeResponse(w, http.StatusUnauthorized, "borg-api: api max create reached")
+					return
+				} else {
+					ac.Create += 1
+					accessControl[token] = ac
+				}
+			}
+		}
+
+		if ctrl == Update {
+			if ac, ok := accessControl[token]; !ok {
+				newAc := UserAccess{Update: 1}
+				accessControl[token] = newAc
+			} else {
+				if ac.Create >= maxUpdate {
+					writeResponse(w, http.StatusUnauthorized, "borg-api: api max update reached")
+					return
+				} else {
+					ac.Create += 1
+					accessControl[token] = ac
+				}
+			}
+		}
+
+		// just log some shit
+		log.Infof("[user access control] token: %s -> %#v", token, accessControl[token])
+
+		mtx.Unlock()
+
+		// then call the handler
+		handler(ctx, w, r, p)
+	}
+}
+
 // simple helper to check if the user is auth in the application,
 // if logged process the handler, or return directly
-func ifAuth(handler func(w http.ResponseWriter, r *http.Request, p httpr.Params)) func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+func ifAuth(handler func(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params)) func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	return func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 		var token string
 		// first check in url params
@@ -108,14 +195,15 @@ func ifAuth(handler func(w http.ResponseWriter, r *http.Request, p httpr.Params)
 		}
 
 		// check user token
-		if u, err := aut.GetUser(r.FormValue("token")); err != nil || u == nil {
+		if u, err := aut.GetUser(token); err != nil || u == nil {
 			// github may not recognize the token, return an error
 			writeResponse(w, http.StatusUnauthorized, "borg-api: Invalid access token")
 			return
 		}
 
 		// no errors, process the handler
-		handler(w, r, p)
+		ctx := context.WithValue(context.Background(), "token", token)
+		handler(ctx, w, r, p)
 	}
 }
 
@@ -146,16 +234,7 @@ func githubAuth(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	fmt.Fprint(w, string(bs))
 }
 
-func read(w http.ResponseWriter, r *http.Request, p httpr.Params) {
-	res, err := client.Get().Index("borg").Type("problem").Id(p.ByName("id")).Do()
-	if err != nil {
-		panic(err)
-	}
-	bs, _ := res.Source.MarshalJSON()
-	fmt.Fprint(w, string(bs))
-}
-
-func getUser(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+func getUser(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	user, err := aut.GetUser(r.FormValue("token"))
 	if err != nil {
 		fmt.Fprintln(w, fmt.Sprintf("Getting user failed: %v", err))
