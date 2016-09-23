@@ -8,7 +8,7 @@ app.directive('a', function() {
         restrict: 'E',
         link: function(scope, elem, attrs) {
             if(attrs.ngClick || attrs.href === '' || attrs.href === '#'){
-                elem.on('click', function(e){
+               elem.on('click', function(e){
                     e.preventDefault();
                 });
             }
@@ -143,7 +143,7 @@ app.controller('SearchController', function(Session, $state, $interval, $scope, 
 
 app.controller('SingleController', function(Session, $state, $interval, $scope, $http) {
 	var f = function() {
-		$http.get(url + '/v1/read/' + $state.params.id).then(function(rsp){
+		$http.get(url + '/v1/p/' + $state.params.id).then(function(rsp){
 			$scope.single = rsp.data;
 		}).catch(function(rsp) {
             console.log(rsp);
@@ -163,7 +163,7 @@ app.controller('SingleController', function(Session, $state, $interval, $scope, 
 
 app.controller('EditController', function(Session, $state, $interval, $scope, $http) {
 	var f = function() {
-		$http.get(url + '/v1/read/' + $state.params.id).then(function(rsp){
+		$http.get(url + '/v1/p/' + $state.params.id).then(function(rsp){
 			$scope.single = rsp.data;
 		}).catch(function(rsp) {
             console.log(rsp);
@@ -179,6 +179,33 @@ app.controller('EditController', function(Session, $state, $interval, $scope, $h
 	$scope.body = function(bodies) {
         return bodies.join("\n")
 	}
+    $scope.save = function() {
+        var solutions = [];
+        $("textarea").each(function(index, el) {
+            var t = $(el).val().trim();
+            if (t.length == 0) {
+                return;
+            }
+            console.log("'" + t + "'")
+            solutions.push({Body: [t]})
+        })
+        var p = {
+            Id: $scope.single.Id,
+            Title: $scope.single.Title,
+            Solutions: solutions 
+        }
+        console.log(p)
+        $http({
+            url: url + '/v1/p',
+            method: "PUT",
+            headers: {Authorization: Session.getToken()},
+            data: p
+        }).then(function(rsp){
+			$state.go('single', {id: $scope.single.Id, title: $scope.slugify($scope.single.Title)})
+		}).catch(function(rsp) {
+            console.log(rsp);
+    	});
+    }
 });
 
 app.controller('MeController', function(Session, $state, $interval, $scope, $http) {

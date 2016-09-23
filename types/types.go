@@ -1,20 +1,20 @@
 package types
 
 type Problem struct {
-	Id         string     `json:"id"`
-	Title      string     `json:"title"`
-	Solutions  []Solution `json:"solutions"`
-	ImportMeta ImportMeta `json:"importMeta"`
+	Id         string     `json:"Id"`
+	Title      string     `json:"Title"`
+	Solutions  []Solution `json:"Solutions"`
+	ImportMeta ImportMeta `json:"ImportMeta"`
 }
 
 type ImportMeta struct {
-	Source int    `json:"source"` // enum, 0 stackoverflow
-	Id     string `"json:"id"`
+	Source int    `json:"Source"` // enum, 0 stackoverflow
+	Id     string `"json:"Id"`
 }
 
 type Solution struct {
-	Body  []string `json:"body"`
-	Score int      `json:"score"`
+	Body  []string `json:"Body"`
+	Score int      `json:"Score"`
 }
 
 type Solutions []Solution

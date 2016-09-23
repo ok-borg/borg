@@ -1,10 +1,10 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"golang.org/x/net/context"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -61,13 +61,13 @@ type UserAccess struct {
 	Create int
 }
 
-func (l *Logger) Printf(str string, i ...interface{}) {
+func (l Logger) Printf(str string, i ...interface{}) {
 	fmt.Println(fmt.Sprintf(str, i...))
 }
 
 func init() {
 	flag.Parse()
-	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(fmt.Sprintf("http://%v", *esAddr)))
+	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(fmt.Sprintf("http://%v", *esAddr)), elastic.SetTraceLog(Logger{}))
 	if err != nil {
 		panic(err)
 	}
@@ -94,12 +94,12 @@ func main() {
 	r.GET("/v1/user", ifAuth(getUser))
 
 	// snippets
-	r.GET("/v1/p/:id", ifAuth(getSnippet))
+	r.GET("/v1/p/:id", getSnippet)
 	r.POST("/v1/p", ifAuth(controlAccess(createSnippet, Create)))
 	r.DELETE("/v1/p/:id", ifAuth(deleteSnippet))
 	r.PUT("/v1/p", ifAuth(controlAccess(updateSnippet, Update)))
 
-	handler := cors.Default().Handler(r)
+	handler := cors.New(cors.Options{AllowedHeaders: []string{"*"}, AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"}}).Handler(r)
 	log.Info("Starting http server")
 	log.Critical(http.ListenAndServe(fmt.Sprintf(":%v", 9992), handler))
 }

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
+	"golang.org/x/net/context"
 	"io/ioutil"
 	"net/http"
 
@@ -12,7 +12,7 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-func getSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
+func getSnippet(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	id := p.ByName("id")
 	if len(id) == 0 {
 		writeResponse(w, http.StatusBadRequest, "borg-api: Missing id url parameter")
@@ -95,25 +95,21 @@ func updateSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 		writeResponse(w, http.StatusBadRequest, "borg-api: snippet id must not be nil")
 		return
 	}
-
 	// insert it in elastic
-	uRes, err := client.Update().
+	uRes, err := client.Index().
 		Index("borg").
 		Type("problem").
 		Id(snipp.Id).
-		Upsert(snipp).
+		BodyJson(snipp).
 		Refresh(true).
 		Do()
 
 	if err != nil {
-		log.Errorf("[updateSnippet] error updating snipper id: %s", snipp.Id)
+		log.Errorf("[updateSnippet] error updating snippet id: %s: %v", snipp.Id, err)
 		writeResponse(w, http.StatusInternalServerError, "borg-api: error")
 		return
 	}
-
-	jsonSnipp, _ := uRes.GetResult.Source.MarshalJSON()
-
-	writeResponse(w, http.StatusOK, string(jsonSnipp))
+	writeResponse(w, http.StatusOK, "{}")
 }
 
 func deleteSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
