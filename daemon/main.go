@@ -96,8 +96,8 @@ func main() {
 	// snippets
 	r.GET("/v1/p/:id", ifAuth(getSnippet))
 	r.POST("/v1/p", ifAuth(controlAccess(createSnippet, Create)))
-	r.DELETE("/v1/p/:id", ifAuth(controlAccess(deleteSnippet, Update)))
-	r.PUT("/v1/p", ifAuth(updateSnippet))
+	r.DELETE("/v1/p/:id", ifAuth(deleteSnippet))
+	r.PUT("/v1/p", ifAuth(controlAccess(updateSnippet, Update)))
 
 	handler := cors.Default().Handler(r)
 	log.Info("Starting http server")
