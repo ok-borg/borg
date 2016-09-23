@@ -96,7 +96,7 @@ func updateSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 		return
 	}
 	// insert it in elastic
-	uRes, err := client.Index().
+	_, err = client.Index().
 		Index("borg").
 		Type("problem").
 		Id(snipp.Id).
