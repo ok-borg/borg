@@ -64,10 +64,47 @@ func main() {
 	r.POST("/v1/auth/github", githubAuth)
 	r.GET("/v1/read/:id", read)
 	// authenticated endpoints
-	r.GET("/v1/user", getUser)
+
+	r.GET("/v1/user", ifAuth(getUser))
 	handler := cors.Default().Handler(r)
 	log.Info("Starting http server")
 	log.Critical(http.ListenAndServe(fmt.Sprintf(":%v", 9992), handler))
+}
+
+func writeResponse(w http.ResponseWriter, status int, body string) {
+	w.Header().Set("Content-Length", fmt.Sprintf("%v", len(body)))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	fmt.Fprintf(w, `%v`, body)
+}
+
+// simple helper to check if the user is auth in the application,
+// if logged process the handler, or return directly
+func ifAuth(handler func(w http.ResponseWriter, r *http.Request, p httpr.Params)) func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	return func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+		var token string
+		// first check in url params
+		if token = r.FormValue("token"); token == "" {
+			// then in the headers
+			if token = r.Header.Get("Authorization"); token == "" {
+				if token = r.Header.Get("authorization"); token == "" {
+					// no auth specified return error
+					writeResponse(w, http.StatusUnauthorized, "borg-api: Missing access token")
+					return
+				}
+			}
+		}
+
+		// check user token
+		if u, err := aut.GetUser(r.FormValue("token")); err != nil || u == nil {
+			// github may not recognize the token, return an error
+			writeResponse(w, http.StatusUnauthorized, "borg-api: Invalid access token")
+			return
+		}
+
+		// no errors, process the handler
+		handler(w, r, p)
+	}
 }
 
 // just redirect the user with the url to the github oauth login with the client_id
