@@ -9,7 +9,7 @@ import (
 	log "github.com/cihub/seelog"
 	"github.com/crufter/borg/types"
 	httpr "github.com/julienschmidt/httprouter"
-	"github.com/satori/go.uuid"
+	"github.com/ventu-io/go-shortid"
 )
 
 func getSnippet(w http.ResponseWriter, r *http.Request, p httpr.Params) {
@@ -18,7 +18,6 @@ func getSnippet(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 		writeResponse(w, http.StatusBadRequest, "borg-api: Missing id url parameter")
 		return
 	}
-
 	res, err := client.Get(). // GetService
 					Index("borg").
 					Type("problem").
@@ -29,9 +28,7 @@ func getSnippet(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 		writeResponse(w, http.StatusBadRequest, "borg-api: Invalid id")
 		return
 	}
-
 	jsonSnipp, _ := res.Source.MarshalJSON()
-
 	writeResponse(w, http.StatusOK, string(jsonSnipp))
 }
 
@@ -41,25 +38,19 @@ func createSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to read body")
 		return
 	}
-
-	// first validate body
 	var snipp types.Problem
 	if err := json.Unmarshal(body, &snipp); err != nil {
 		log.Errorf("[createSnippet] invalid snippet, %s, input was %s", err.Error(), string(body))
 		writeResponse(w, http.StatusBadRequest, "borg-api: Invalid snippet")
 		return
 	}
-
-	// no empty fields allowed
 	if snipp.Title == "" || len(snipp.Solutions) == 0 {
 		writeResponse(w, http.StatusBadRequest, "borg-api: snippet title and solutins cannot be empty")
 		return
 	}
-
-	// create an id for this snippet
-	snipp.Id = uuid.NewV4().String()
-
-	// insert it in elastic
+	snipp.Id = shortid.MustGenerate()
+	snipp.CreatedBy = ctx.Value("userId").(string)
+	log.Infof("Snippet with id %v is created by %v", snipp.Id, snipp.CreatedBy)
 	_, err = client.Index().
 		Index("borg").
 		Type("problem").
@@ -67,7 +58,6 @@ func createSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 		BodyJson(snipp).
 		Refresh(true).
 		Do()
-
 	if err != nil {
 		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to save snippet")
 	} else {
@@ -81,21 +71,18 @@ func updateSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to read body")
 		return
 	}
-
-	// first validate body
 	var snipp types.Problem
 	if err := json.Unmarshal(body, &snipp); err != nil {
 		log.Errorf("[updateSnippet] invalid snippet, %s, input was %s", err.Error(), string(body))
 		writeResponse(w, http.StatusBadRequest, "borg-api: Invalid snippet")
 		return
 	}
-
-	// no empty fields allowed
 	if snipp.Id == "" {
 		writeResponse(w, http.StatusBadRequest, "borg-api: snippet id must not be nil")
 		return
 	}
-	// insert it in elastic
+	snipp.LastUpdatedBy = ctx.Value("userId").(string)
+	log.Infof("Snippet %v is being updated by %v", snipp.Id, snipp.LastUpdatedBy)
 	_, err = client.Index().
 		Index("borg").
 		Type("problem").
@@ -103,7 +90,6 @@ func updateSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 		BodyJson(snipp).
 		Refresh(true).
 		Do()
-
 	if err != nil {
 		log.Errorf("[updateSnippet] error updating snippet id: %s: %v", snipp.Id, err)
 		writeResponse(w, http.StatusInternalServerError, "borg-api: error")

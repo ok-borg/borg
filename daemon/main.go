@@ -67,7 +67,7 @@ func (l Logger) Printf(str string, i ...interface{}) {
 
 func init() {
 	flag.Parse()
-	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(fmt.Sprintf("http://%v", *esAddr)), elastic.SetTraceLog(Logger{}))
+	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(fmt.Sprintf("http://%v", *esAddr)))
 	if err != nil {
 		panic(err)
 	}
@@ -182,27 +182,23 @@ func controlAccess(handler func(ctx context.Context, w http.ResponseWriter, r *h
 func ifAuth(handler func(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params)) func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	return func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 		var token string
-		// first check in url params
 		if token = r.FormValue("token"); token == "" {
-			// then in the headers
 			if token = r.Header.Get("Authorization"); token == "" {
 				if token = r.Header.Get("authorization"); token == "" {
-					// no auth specified return error
 					writeResponse(w, http.StatusUnauthorized, "borg-api: Missing access token")
 					return
 				}
 			}
 		}
-
-		// check user token
-		if u, err := aut.GetUser(token); err != nil || u == nil {
+		u, err := aut.GetUser(token)
+		if err != nil || u == nil {
 			// github may not recognize the token, return an error
 			writeResponse(w, http.StatusUnauthorized, "borg-api: Invalid access token")
 			return
 		}
-
 		// no errors, process the handler
 		ctx := context.WithValue(context.Background(), "token", token)
+		ctx = context.WithValue(ctx, "userId", u.Id)
 		handler(ctx, w, r, p)
 	}
 }

@@ -1,10 +1,12 @@
 package types
 
 type Problem struct {
-	Id         string     `json:"Id"`
-	Title      string     `json:"Title"`
-	Solutions  []Solution `json:"Solutions"`
-	ImportMeta ImportMeta `json:"ImportMeta"`
+	Id            string     `json:"Id"`
+	Title         string     `json:"Title"`
+	Solutions     []Solution `json:"Solutions"`
+	ImportMeta    ImportMeta `json:"ImportMeta"`
+	CreatedBy     string     `json:"CreatedBy"`
+	LastUpdatedBy string     `json:"LastUpdatedBy"`
 }
 
 type ImportMeta struct {

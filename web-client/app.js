@@ -89,8 +89,8 @@ app.config(function ($stateProvider, $urlRouterProvider) {
             controller: 'EditController',
         })
         .state('new', {
-            url: '/new/:id',
-            templateUrl: 'partials/edit.html',
+            url: '/new',
+            templateUrl: 'partials/new.html',
             controller: 'NewController',
         })
 		.state('me', {
@@ -201,7 +201,37 @@ app.controller('EditController', function(Session, $state, $interval, $scope, $h
             headers: {Authorization: Session.getToken()},
             data: p
         }).then(function(rsp){
-			$state.go('single', {id: $scope.single.Id, title: $scope.slugify($scope.single.Title)})
+			$state.go('single', {id: $scope.single.Id, slug: $scope.slugify($scope.single.Title)})
+		}).catch(function(rsp) {
+            console.log(rsp);
+    	});
+    }
+});
+
+app.controller('NewController', function(Session, $state, $interval, $scope, $http) {
+    $scope.slugify = function(text) {
+		return text
+        .toLowerCase()
+        .replace(/[^\w ]+/g,'')
+        .replace(/ +/g,'-')
+	}
+    $scope.save = function() {
+        var t = $scope.single.Title.trim();
+        var b = $scope.single.Body.trim();
+        if (t.length == 0 || b.length == 0) {
+            return
+        }
+        var p = {
+            Title: t,
+            Solutions: [{"Body": [b]}] 
+        }
+        $http({
+            url: url + '/v1/p',
+            method: "POST",
+            headers: {Authorization: Session.getToken()},
+            data: p
+        }).then(function(rsp){
+			$state.go('single', {id: rsp.data.Id, slug: $scope.slugify(rsp.data.Title)})
 		}).catch(function(rsp) {
             console.log(rsp);
     	});

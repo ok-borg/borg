@@ -1,0 +1,25 @@
+<div ng-controller="HeaderController" ng-include="'partials/header.html'"></div>
+
+<div class="page">
+        <div class="row">
+			<div class="col-xs-11">
+        		<h4>
+					<input class="title" ng-model="single.Title" />
+				</h4>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-1 text-right">
+			</div>
+			<div class="col-xs-10">
+				<textarea ng-model="single.Body" rows="10"></textarea>
+			</div>	
+		</div>
+        <div class="row">
+            <div class="col-xs-1 text-right">
+            </div>
+            <div class="col-xs-10">
+                <button ng-click="save()">Save</button>
+            </div>
+        </div>
+</div>
