@@ -2,7 +2,7 @@
 
 BORG - A terminal based search engine for bash commands
 ===
-![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg)
+![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg) [ok-b.org](http://ok-b.org)
 
 Borg was built out of the frustration of having to leave the terminal to search for bash commands.
 Its succinct output also makes it easier to glance over multiple snippets of code.
@@ -49,6 +49,10 @@ Some explanations for the UI:
 Please keep in mind that this is in a really-really early phase.
 Glitches are expected and there are a lot of low hanging fruits I can go after.
 The relevancy of the results, the interface, and the available features in general will be greatly improved in the coming weeks.
+
+#### The web client
+
+There is a web client available under [ok-b.org](http://ok-b.org) for easier curation of content. Currently it lets you search, create and edit content. The cli only supports querying now, but this is changing soon.
 
 #### Installation
 
