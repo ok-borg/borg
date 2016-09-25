@@ -39,6 +39,8 @@ func getLatestSnippets(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	res, err := client.Search().
 		Index("borg").
 		Type("problem").
+		From(0).
+		Size(200).
 		Sort("Created", false).
 		Do()
 	if err != nil {

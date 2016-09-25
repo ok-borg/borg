@@ -88,6 +88,11 @@ app.config(function ($stateProvider, $urlRouterProvider) {
             templateUrl: 'partials/edit.html',
             controller: 'EditController',
         })
+        .state('latest', {
+            url: '/latest',
+            templateUrl: 'partials/latest.html',
+            controller: 'LatestController',
+        })
         .state('new', {
             url: '/new',
             templateUrl: 'partials/new.html',
@@ -142,7 +147,7 @@ app.controller('SearchController', function(Session, $state, $interval, $scope, 
 });
 
 app.controller('LatestController', function(Session, $state, $interval, $scope, $http) {
-	var search = function(q) {
+	var search = function() {
 		$http.get(url + '/v1/latest', {
             params: {
 				"t": Session.getToken()
@@ -153,6 +158,7 @@ app.controller('LatestController', function(Session, $state, $interval, $scope, 
             console.log(rsp);
     	});
 	}
+    search()
 	$scope.slugify = function(text) {
 		return text
         .toLowerCase()
@@ -163,7 +169,6 @@ app.controller('LatestController', function(Session, $state, $interval, $scope, 
         return bodies.join("\n")
 	}
 });
-
 
 app.controller('SingleController', function(Session, $state, $interval, $scope, $http) {
 	var f = function() {
