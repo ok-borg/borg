@@ -11,7 +11,6 @@ import (
 	log "github.com/cihub/seelog"
 	"github.com/crufter/borg/types"
 	httpr "github.com/julienschmidt/httprouter"
-	"github.com/olivere/elastic"
 	"github.com/ventu-io/go-shortid"
 )
 
