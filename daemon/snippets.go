@@ -5,10 +5,13 @@ import (
 	"golang.org/x/net/context"
 	"io/ioutil"
 	"net/http"
+	"reflect"
+	"time"
 
 	log "github.com/cihub/seelog"
 	"github.com/crufter/borg/types"
 	httpr "github.com/julienschmidt/httprouter"
+	"github.com/olivere/elastic"
 	"github.com/ventu-io/go-shortid"
 )
 
@@ -32,6 +35,30 @@ func getSnippet(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	writeResponse(w, http.StatusOK, string(jsonSnipp))
 }
 
+func getLatestSnippets(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	//byUserId := r.FormValue("by")
+	res, err := client.Search().
+		Index("borg").
+		Type("problem").
+		Sort("Created", false).
+		Do()
+	if err != nil {
+		panic(err)
+	}
+	all := []types.Problem{}
+	var ttyp types.Problem
+	for _, item := range res.Each(reflect.TypeOf(ttyp)) {
+		if t, ok := item.(types.Problem); ok {
+			all = append(all, t)
+		}
+	}
+	bs, err := json.Marshal(all)
+	if err != nil {
+		panic(err)
+	}
+	writeResponse(w, http.StatusOK, string(bs))
+}
+
 func createSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -50,6 +77,7 @@ func createSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 	}
 	snipp.Id = shortid.MustGenerate()
 	snipp.CreatedBy = ctx.Value("userId").(string)
+	snipp.Created = time.Now()
 	log.Infof("Snippet with id %v is created by %v", snipp.Id, snipp.CreatedBy)
 	_, err = client.Index().
 		Index("borg").
@@ -82,6 +110,7 @@ func updateSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 		return
 	}
 	snipp.LastUpdatedBy = ctx.Value("userId").(string)
+	snipp.LastUpdated = time.Now()
 	log.Infof("Snippet %v is being updated by %v", snipp.Id, snipp.LastUpdatedBy)
 	_, err = client.Index().
 		Index("borg").

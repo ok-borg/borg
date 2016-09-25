@@ -1,12 +1,18 @@
 package types
 
+import (
+	"time"
+)
+
 type Problem struct {
 	Id            string     `json:"Id"`
 	Title         string     `json:"Title"`
 	Solutions     []Solution `json:"Solutions"`
 	ImportMeta    ImportMeta `json:"ImportMeta"`
 	CreatedBy     string     `json:"CreatedBy"`
+	Created       time.Time  `json:"Created"`
 	LastUpdatedBy string     `json:"LastUpdatedBy"`
+	LastUpdated   time.Time  `json:"Updated"`
 }
 
 type ImportMeta struct {

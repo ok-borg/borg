@@ -67,7 +67,7 @@ func (l Logger) Printf(str string, i ...interface{}) {
 
 func init() {
 	flag.Parse()
-	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(fmt.Sprintf("http://%v", *esAddr)))
+	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(fmt.Sprintf("http://%v", *esAddr)), elastic.SetTraceLog(Logger{}))
 	if err != nil {
 		panic(err)
 	}
@@ -95,6 +95,7 @@ func main() {
 
 	// snippets
 	r.GET("/v1/p/:id", getSnippet)
+	r.GET("/v1/latest", getLatestSnippets)
 	r.POST("/v1/p", ifAuth(controlAccess(createSnippet, Create)))
 	r.DELETE("/v1/p/:id", ifAuth(deleteSnippet))
 	r.PUT("/v1/p", ifAuth(controlAccess(updateSnippet, Update)))

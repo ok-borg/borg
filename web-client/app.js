@@ -141,6 +141,30 @@ app.controller('SearchController', function(Session, $state, $interval, $scope, 
 	});
 });
 
+app.controller('LatestController', function(Session, $state, $interval, $scope, $http) {
+	var search = function(q) {
+		$http.get(url + '/v1/latest', {
+            params: {
+				"t": Session.getToken()
+			}
+     	}).then(function(rsp){
+			$scope.results = rsp.data;
+		}).catch(function(rsp) {
+            console.log(rsp);
+    	});
+	}
+	$scope.slugify = function(text) {
+		return text
+        .toLowerCase()
+        .replace(/[^\w ]+/g,'')
+        .replace(/ +/g,'-')
+	}
+	$scope.body = function(bodies) {
+        return bodies.join("\n")
+	}
+});
+
+
 app.controller('SingleController', function(Session, $state, $interval, $scope, $http) {
 	var f = function() {
 		$http.get(url + '/v1/p/' + $state.params.id).then(function(rsp){

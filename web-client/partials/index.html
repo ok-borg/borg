@@ -1,7 +1,7 @@
-<div class="row">
+<div class="row index">
 	<div class="col-centered col-xs-8">
 		<div class="row text-center">
-			<img id="logo" src="https://github.com/crufter/borg/raw/master/borg_mascot.png" />
+			<a href="https://github.com/crufter/borg"><img id="logo" src="https://github.com/crufter/borg/raw/master/borg_mascot.png" /></a>
 		</div>
 		<div id="big-search" class="row">
 			<form novalidate id="quoteForm" class="simple-form" ng-submit="submit()">
@@ -9,7 +9,7 @@
 			</form>
 		</div>
 		<div ng-if="isLoggedIn" class="row top-buffer">
-			<div class="col-xs-6">
+			<div class="col-xs-6  saveyourown">
 				<a href="/#/new">Save your own snippet</a>
 			</div>
 			<div class="col-xs-6">
@@ -23,5 +23,28 @@
 				<a href="{{apiBaseUrl}}/v1/redirect/github/authorize">Log in with github</a> to create your own content
 			</div>
 		</div>
+        <div class="row top-buffer">
+            <a href="/#/latest">
+                <div class="linkb cblack red col-xs-2">
+                    Latest
+                </div>
+            </a>
+            <a href="https://github.com/crufter/borg">
+                <div class="linkb yellow cblack col-xs-2">
+                    Github
+                </div>
+            </a>
+            <a href="https://twitter.com/ok_borg">
+                <div class="linkb blue col-xs-2">
+                    Twitter
+                </div>
+            </a>
+            <a target="_blank" href="https://twitter.com/home/?status=Since%20I%20use%20Borg%2C%20I%20am%20a%20slightly%20less%20grumpy%20bash%20user!%20Check%20it%20out%3A%20http%3A%2F%2Fok-b.org%20via%20%40ok_borg">
+                <div class="linkb border cblack col-xs-2">
+                    Spread
+                </div>
+            </a>
+        </div>
 	</div>
 </div>
+

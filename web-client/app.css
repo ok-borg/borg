@@ -109,3 +109,52 @@ input.title {
     width: 100%;
 }
 
+.linkb {
+    font-weight: 500;
+    color: white;
+    padding-top: 1em;
+    padding-bottom: 1em;
+    margin-top: 2em;
+    margin-left: 15px;
+}
+
+.yellow{
+    background: #FFB267;
+}
+
+.red {
+    background: #FF7967;
+}
+
+.blue{
+    background: #718CEE;
+}
+
+.cblack {
+    color: black; 
+}
+
+.cwhite {
+    color: white;
+}
+
+.border {
+    border: 1px solid #aaa;
+}
+
+.index{
+    margin-top: 2em;
+}
+
+.saveyourown {
+    border-bottom: 1px dashed #ccc;
+}
+
+h4 input {
+    height: 2em;
+}
+
+pre {
+    max-height: 11.3em;
+    overflow: scroll;
+}

@@ -1,0 +1,21 @@
+<div ng-controller="HeaderController" ng-include="'partials/header.html'"></div>
+
+<div class="page">
+    <div ng-repeat="(key, hit) in results">
+        <div class="row">
+			<div class="col-xs-12">
+        		<h4>
+					<a href="/#/t/{{hit.Id}}/{{slugify(hit.Title)}}">{{hit.Title}}</a>
+				</h4>
+			</div>
+		</div>
+		<div ng-repeat="(skey, solution) in hit.Solutions" class="row">
+			<div class="col-xs-1 text-right">
+				[{{skey}}]	
+			</div>
+			<div class="col-xs-10">
+				<pre>{{body(solution.Body)}}</pre>
+			</div>	
+		</div>
+    </div>
+</div>
