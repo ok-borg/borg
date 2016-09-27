@@ -66,16 +66,19 @@ type User struct {
 }
 
 func toUser(user *github.User) (*User, error) {
+	var email string
 	switch {
-	case user.Email == nil:
-		return nil, errors.New("User has no email")
+	case user.Email != nil:
+		email = *user.Email
 	case user.Name == nil:
-		return nil, errors.New("User has no email")
+		return nil, errors.New("User has no name") // hopefully this is impossible
+	case user.Name != nil:
+		email = *user.Name // FIXME(crufter): this is just a quick temporary fix - not everyone has a public email at github
 	}
 	id := fmt.Sprintf("%v", *user.ID)
 	ret := &User{
 		Id:       id,
-		Email:    *user.Email,
+		Email:    email,
 		Name:     *user.Name,
 		SourceId: id,
 	}
