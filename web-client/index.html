@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="app" ng-controller="MainController">
 <head>
-  <title>OK-b.org</title>
+  <base href="/">
+  <title ng-bind-template="{{title}}"></title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!--Bootstrap CSS-->
@@ -9,7 +10,7 @@
   <link rel="stylesheet" href="app.css">
 </head>
 
-<body ng-app="app">
+<body>
 
 <div ui-view class="container"></div>
 

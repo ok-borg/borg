@@ -1,6 +1,6 @@
 var app = angular.module('app', ['ngCookies', 'ui.router']);
 
-const url = "http://ok-b.org:9992"
+const url = "http://borg.crufter.com:9992"
 const tokenMinLen = 10
 
 app.directive('a', function() {
@@ -57,8 +57,9 @@ app.factory('Session', function($http, $cookies, $q, $window) {
     return Session;
 });
 
-app.config(function ($stateProvider, $urlRouterProvider) {
+app.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
     $urlRouterProvider.otherwise('/');
+    $locationProvider.html5Mode(true);
     $stateProvider
         .state('index', {
             url: '/',
@@ -105,21 +106,33 @@ app.config(function ($stateProvider, $urlRouterProvider) {
 		});
 });
 
-app.controller('IndexController', function(Session, $state, $interval, $scope, $http) {
-	$scope.apiBaseUrl = url;
-    $scope.submit = function() {
-   		$state.go('search', {query: $scope.query});
-    }
-	$scope.user = {};
-	$scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
-	Session.getUser(function(usr) {
-        $scope.user = usr;	
-	})
+app.controller('MainController', function($scope, $rootScope, $location, $window) {
+    $rootScope.$on('$locationChangeStart', function() {
+        console.log($location.url(), "aaa");
+        $window.ga('send', 'pageview', { page: $location.url() });
+    })
+    $scope.title = "OK borg - the quickest solution to your bash woes"
+    $rootScope.$on('titleChange', function(e, d) {
+        $scope.title = d;
+    })
 });
 
-app.controller('SearchController', function(Session, $state, $interval, $scope, $http) {
+app.controller('IndexController', function(Session, $state, $interval, $scope, $http) {
+    $scope.apiBaseUrl = url;
+    $scope.submit = function() {
+        $state.go('search', {query: $scope.query});
+    }
+    $scope.user = {};
+    $scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
+    Session.getUser(function(usr) {
+        $scope.user = usr;     
+    })
+})
+
+app.controller('SearchController', function(Session, $window, $state, $interval, $scope, $http) {
 	var search = function(q) {
-		$http.get(url + '/v1/query', {
+        $window.ga('send', 'event', 'search', 'frontend', q);
+        $http.get(url + '/v1/query', {
             params: {
 				"t": Session.getToken(),
 				"q": q
@@ -146,8 +159,9 @@ app.controller('SearchController', function(Session, $state, $interval, $scope, 
 	});
 });
 
-app.controller('LatestController', function(Session, $state, $interval, $scope, $http) {
-	var search = function() {
+app.controller('LatestController', function(Session, $rootScope, $state, $interval, $scope, $http) {
+	$rootScope.$emit('titleChange', "Latest")
+    var search = function() {
 		$http.get(url + '/v1/latest', {
             params: {
 				"t": Session.getToken()
@@ -170,10 +184,11 @@ app.controller('LatestController', function(Session, $state, $interval, $scope, 
 	}
 });
 
-app.controller('SingleController', function(Session, $state, $interval, $scope, $http) {
+app.controller('SingleController', function(Session, $rootScope, $state, $interval, $scope, $http) {
 	var f = function() {
 		$http.get(url + '/v1/p/' + $state.params.id).then(function(rsp){
 			$scope.single = rsp.data;
+            $rootScope.$emit('titleChange', rsp.data.Title)
 		}).catch(function(rsp) {
             console.log(rsp);
     	});
@@ -191,7 +206,8 @@ app.controller('SingleController', function(Session, $state, $interval, $scope, 
 });
 
 app.controller('EditController', function(Session, $state, $interval, $scope, $http) {
-	var f = function() {
+	$rootScope.$emit('titleChange', "Edit")
+    var f = function() {
 		$http.get(url + '/v1/p/' + $state.params.id).then(function(rsp){
 			$scope.single = rsp.data;
 		}).catch(function(rsp) {
@@ -237,7 +253,8 @@ app.controller('EditController', function(Session, $state, $interval, $scope, $h
     }
 });
 
-app.controller('NewController', function(Session, $state, $interval, $scope, $http) {
+app.controller('NewController', function(Session, $rootScope, $state, $interval, $scope, $http) {
+    $rootScope.$emit('titleChange', "Submit new")
     $scope.slugify = function(text) {
 		return text
         .toLowerCase()
@@ -267,7 +284,7 @@ app.controller('NewController', function(Session, $state, $interval, $scope, $ht
     }
 });
 
-app.controller('MeController', function(Session, $state, $interval, $scope, $http) {
+app.controller('MeController', function(Session, $rootScope, $state, $interval, $scope, $http) {
 	$scope.user = {};
 	$scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
 	Session.getUser(function(usr) {
@@ -289,7 +306,6 @@ app.controller('HeaderController', function(Session, $state, $rootScope, $scope)
 			$state.go('search', {query: $scope.formData.query});
             return;
 		}
-        console.log("iii", $scope.query)
 		$rootScope.$broadcast('query-submitted', {query: $scope.formData.query});
 	}
 });

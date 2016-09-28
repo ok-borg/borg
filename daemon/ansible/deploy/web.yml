@@ -10,5 +10,5 @@
     - name: stop running
       shell: sudo docker rm -f borg-web 
     - name: start container
-      shell: docker run -p=80:80 --name=borg-web -d crufter/borg-web
+      shell: docker run -p=80:80 -v /var/sitemap/sitemap.xml.gz:/usr/share/nginx/html/sitemap.xml.gz:ro --name=borg-web -d crufter/borg-web
     
