@@ -1,0 +1,14 @@
+- name: Deploy web server and runners 
+  hosts: borg
+  become: True
+  become_method: sudo
+  tags: code 
+  tasks:
+    # webserver
+    - name: pull 
+      shell: docker pull crufter/borg-web 
+    - name: stop running
+      shell: sudo docker rm -f borg-web 
+    - name: start container
+      shell: docker run -p=80:80 --name=borg-web -d crufter/borg-web
+    

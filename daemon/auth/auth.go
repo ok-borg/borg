@@ -59,6 +59,7 @@ func (auth *Auth) GetUser(token string) (*User, error) {
 
 type User struct {
 	Id       string
+	Login    string
 	Email    string
 	Name     string
 	SourceId string
@@ -66,21 +67,17 @@ type User struct {
 }
 
 func toUser(user *github.User) (*User, error) {
-	var email string
-	switch {
-	case user.Email != nil:
-		email = *user.Email
-	case user.Name == nil:
-		return nil, errors.New("User has no name") // hopefully this is impossible
-	case user.Name != nil:
-		email = *user.Name // FIXME(crufter): this is just a quick temporary fix - not everyone has a public email at github
-	}
 	id := fmt.Sprintf("%v", *user.ID)
 	ret := &User{
 		Id:       id,
-		Email:    email,
-		Name:     *user.Name,
+		Login:    *user.Login,
 		SourceId: id,
+	}
+	if user.Email != nil {
+		ret.Email = *user.Email
+	}
+	if user.Name != nil {
+		ret.Name = *user.Name
 	}
 	return ret, nil
 }

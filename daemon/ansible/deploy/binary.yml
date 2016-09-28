@@ -1,0 +1,17 @@
+- name: Deploy web server and runners 
+  hosts: borg
+  become: True
+  become_method: sudo
+  tags: code 
+  tasks:
+    # webserver
+    - name: stop service
+      ignore_errors: true
+      shell: service borgd stop
+    - name: copy binary
+      copy: src=../../daemon_linux_amd64 dest=/usr/bin/borgd
+    - name: make sure borgd is executable
+      shell: chmod 755 /usr/bin/borgd
+    - name: start service
+      shell: service borgd start
+    

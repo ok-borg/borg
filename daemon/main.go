@@ -15,6 +15,8 @@ import (
 	log "github.com/cihub/seelog"
 	"github.com/crufter/borg/daemon/auth"
 	"github.com/crufter/borg/types"
+	"github.com/crufter/slugify"
+	"github.com/joeguo/sitemap"
 	httpr "github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
 	"golang.org/x/oauth2"
@@ -29,6 +31,7 @@ var (
 	esAddr             = flag.String("esaddr", "127.0.0.1:9200", "Elastic Search address")
 	githubClientId     = flag.String("github-client-id", "", "Github oauth client id")
 	githubClientSecret = flag.String("github-client-secret", "", "Github client secret")
+	sm                 = flag.String("sitemap", "", "Sitemap location. Leave empty if you don't want a sitemap to be generated")
 )
 
 var (
@@ -86,6 +89,10 @@ func main() {
 	}
 	aut = auth.NewAuth(oauthCfg, client)
 	r := httpr.New()
+	if len(*sm) > 0 {
+		go sitemapLoop()
+	}
+
 	r.GET("/v1/redirect/github/authorize", redirectGithubAuthorize)
 	r.GET("/v1/query", query)
 	r.POST("/v1/auth/github", githubAuth)
@@ -280,4 +287,52 @@ func query(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 		panic(err)
 	}
 	fmt.Fprint(w, string(bs))
+}
+
+func sitemapLoop() {
+	first := true
+	for {
+		if !first {
+			time.Sleep(30 * time.Minute)
+		}
+		first = false
+		generateSitemap()
+	}
+}
+
+func generateSitemap() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warnf("Sitemap generation failed: %v", r)
+		}
+	}()
+	// this query is because we only want to show user submitted content for now - not ones scraped from somewhere else - to not piss of google
+	// @TODO include ones which were changed substantially
+	// @TODO this is going to get dog slow
+	res, err := client.Search().Query(elastic.NewFilteredQuery(elastic.NewRegexpFilter("CreatedBy", ".{3,}"))).Size(500).Do()
+	if err != nil {
+		panic(err)
+	}
+	all := []types.Problem{}
+	var ttyp types.Problem
+	for _, item := range res.Each(reflect.TypeOf(ttyp)) {
+		if t, ok := item.(types.Problem); ok {
+			all = append(all, t)
+		}
+	}
+	items := []*sitemap.Item{}
+	for _, v := range all {
+		item := &sitemap.Item{
+			Loc:        "http://ok-b.org/#/t/" + fmt.Sprintf("%v/%v", v.Id, slugify.S(v.Title)),
+			LastMod:    time.Now(),
+			Priority:   0.5,
+			Changefreq: "daily",
+		}
+		items = append(items, item)
+	}
+	err = sitemap.SiteMap(*sm+"/sitemap.xml.gz", items)
+	if err != nil {
+		panic(err)
+	}
+	log.Info("Generated sitemap successfully")
 }
