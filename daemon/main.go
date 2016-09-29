@@ -17,6 +17,7 @@ import (
 	"github.com/crufter/borg/types"
 	"github.com/crufter/slugify"
 	"github.com/joeguo/sitemap"
+	"github.com/jpillora/go-ogle-analytics"
 	httpr "github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
 	"golang.org/x/oauth2"
@@ -32,6 +33,7 @@ var (
 	githubClientId     = flag.String("github-client-id", "", "Github oauth client id")
 	githubClientSecret = flag.String("github-client-secret", "", "Github client secret")
 	sm                 = flag.String("sitemap", "", "Sitemap location. Leave empty if you don't want a sitemap to be generated")
+	analytics          = flag.String("analytics", "", "Analytics tracking id")
 )
 
 var (
@@ -40,6 +42,7 @@ var (
 	accessControl          map[string]UserAccess
 	mtx                    = &sync.Mutex{}
 	lastAccessControlReset = time.Now()
+	analyticsClient        *ga.Client
 )
 
 type AccessKinds int
@@ -70,12 +73,17 @@ func (l Logger) Printf(str string, i ...interface{}) {
 
 func init() {
 	flag.Parse()
-	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(fmt.Sprintf("http://%v", *esAddr)), elastic.SetTraceLog(Logger{}))
+	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(fmt.Sprintf("http://%v", *esAddr)))
 	if err != nil {
 		panic(err)
 	}
 	client = cl
 	accessControl = map[string]UserAccess{}
+	acl, err := ga.NewClient(*analytics)
+	if err != nil {
+		log.Errorf("Failed to acquire analytics client id: %v", err)
+	}
+	analyticsClient = acl
 }
 
 func main() {
@@ -265,10 +273,16 @@ func query(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 		size = 50
 	}
 	q := r.FormValue("q")
+	ql := q
 	if r.FormValue("p") == "true" {
-		log.Infof("Private query with size '%v'", size)
-	} else {
-		log.Infof("Querying '%v' with size '%v'", q, size)
+		ql = "PRIVATE"
+	}
+	if len(*analytics) > 0 {
+		log.Infof("Querying %v with size '%v'", ql, size)
+		err = analyticsClient.Send(ga.NewEvent("search", "backend").Label(ql))
+		if err != nil {
+			log.Warnf("Failed to send analytics events: %v", err)
+		}
 	}
 	res, err := client.Search().Index("borg").Type("problem").From(0).Size(size).Query(
 		elastic.NewMultiMatchQuery(q).FieldWithBoost("Title", 5.0).Field("Solutions.Body")).Do()
