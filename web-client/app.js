@@ -108,7 +108,6 @@ app.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
 
 app.controller('MainController', function($scope, $rootScope, $location, $window) {
     $rootScope.$on('$locationChangeStart', function() {
-        console.log($location.url(), "aaa");
         $window.ga('send', 'pageview', { page: $location.url() });
     })
     $scope.title = "OK borg - the quickest solution to your bash woes"
@@ -205,7 +204,7 @@ app.controller('SingleController', function(Session, $rootScope, $state, $interv
 	}
 });
 
-app.controller('EditController', function(Session, $state, $interval, $scope, $http) {
+app.controller('EditController', function(Session, $rootScope, $state, $interval, $scope, $http) {
 	$rootScope.$emit('titleChange', "Edit")
     var f = function() {
 		$http.get(url + '/v1/p/' + $state.params.id).then(function(rsp){
@@ -231,7 +230,6 @@ app.controller('EditController', function(Session, $state, $interval, $scope, $h
             if (t.length == 0) {
                 return;
             }
-            console.log("'" + t + "'")
             solutions.push({Body: [t]})
         })
         var p = {
@@ -239,7 +237,6 @@ app.controller('EditController', function(Session, $state, $interval, $scope, $h
             Title: $scope.single.Title,
             Solutions: solutions 
         }
-        console.log(p)
         $http({
             url: url + '/v1/p',
             method: "PUT",
