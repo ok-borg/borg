@@ -13,6 +13,7 @@ var (
 	L = flag.Int("l", 5, "Result list limit. Defaults to 5")
 	H = flag.String("h", "borg.crufter.com", "Server to connect to")
 	P = flag.Bool("p", false, "Private search. Your search won't leave a trace. Pinky promise. Don't use this all the time if you want to see the search result relevancy improved")
+	D = flag.Bool("d", false, "Debug mode")
 )
 
 var (

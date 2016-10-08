@@ -6,7 +6,7 @@ import (
 	"github.com/crufter/borg/types"
 	"github.com/crufter/slugify"
 	"github.com/joeguo/sitemap"
-	"gopkg.in/olivere/elastic.v2"
+	"gopkg.in/olivere/elastic.v3"
 	"reflect"
 	"time"
 )
@@ -20,7 +20,7 @@ func GenerateSitemap(sitemapPath string, client *elastic.Client) {
 	// this query is because we only want to show user submitted content for now - not ones scraped from somewhere else - to not piss of google
 	// @TODO include ones which were changed substantially
 	// @TODO this is going to get dog slow
-	res, err := client.Search().Query(elastic.NewFilteredQuery(elastic.NewRegexpFilter("CreatedBy", ".{3,}"))).Size(500).Do()
+	res, err := client.Search().Query(elastic.NewRegexpQuery("CreatedBy", ".{3,}")).Size(500).Do()
 	if err != nil {
 		panic(err)
 	}

@@ -19,7 +19,7 @@ import (
 	httpr "github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
 	"golang.org/x/oauth2"
-	"gopkg.in/olivere/elastic.v2"
+	"gopkg.in/olivere/elastic.v3"
 )
 
 const (

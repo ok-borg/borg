@@ -70,8 +70,11 @@ func Edit(queryIndex string) error {
 		return err
 	}
 	p.Id = s.Id
-	fmt.Println(p)
-	fmt.Println(s)
+	if *conf.D {
+		fmt.Println(s)
+		fmt.Println(p)
+		return nil
+	}
 	return saveSnippet(p)
 }
 
@@ -151,7 +154,6 @@ func parseEditFile(s string) (types.Problem, error) {
 		}
 		buf = append(buf, v)
 	}
-	fmt.Println(buf)
 	ret.Title = title
 	ret.Solutions = solutions
 	return ret, nil

@@ -10,7 +10,7 @@ import (
 	//"strings"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/crufter/borg/types"
-	"gopkg.in/olivere/elastic.v2"
+	"gopkg.in/olivere/elastic.v3"
 	"sort"
 	"strings"
 )

@@ -4,7 +4,7 @@ import (
 	log "github.com/cihub/seelog"
 	"github.com/crufter/borg/types"
 	"github.com/jpillora/go-ogle-analytics"
-	"gopkg.in/olivere/elastic.v2"
+	"gopkg.in/olivere/elastic.v3"
 	"reflect"
 )
 

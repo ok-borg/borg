@@ -16,8 +16,8 @@ type Problem struct {
 }
 
 type ImportMeta struct {
-	Source int    `json:"Source"` // enum, 0 stackoverflow
-	Id     string `"json:"Id"`
+	Source int    `json:"Source,omitempty"` // enum, 0 stackoverflow
+	Id     string `"json:"Id,omitempty"`
 }
 
 type Solution struct {

@@ -28,7 +28,10 @@ func Query(q string) error {
 	defer rsp.Body.Close()
 	body, err := ioutil.ReadAll(rsp.Body)
 	if err != nil {
-		panic(err)
+		return err
+	}
+	if *conf.D {
+		fmt.Println(fmt.Sprintf("json response: %v", string(body)))
 	}
 	problems := []types.Problem{}
 	err = json.Unmarshal(body, &problems)
