@@ -2,7 +2,7 @@
 
 BORG - A terminal based search engine for bash snippets 
 ===
-![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg) [ok-b.org](http://ok-b.org)
+![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg)
 
 Borg was built out of the frustration of having to leave the terminal to search for bash snippets.
 
@@ -25,7 +25,7 @@ borg "find all txt"
 
 ### Add
 
-First obtain an oauth token by loggin in with github at [ok-b.org](http://ok-b.org). Copy the token you can find on [ok-b.org/me](http://ok-b.org/me) and log in with borg:
+First obtain an oauth token by loggin in with github at [ok-b.org](http://ok-b.org).
 
 ```
 borg login my3XamPleT0k3n
