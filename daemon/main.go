@@ -90,6 +90,7 @@ func main() {
 	r.POST("/v1/p", access.IfAuth(client, access.Control(createSnippet, access.Create)))
 	//r.DELETE("/v1/p/:id", access.IfAuth(deleteSnippet))
 	r.PUT("/v1/p", access.IfAuth(client, access.Control(updateSnippet, access.Update)))
+	r.POST("/v1/worked", access.IfAuth(client, snippetWorked))
 
 	handler := cors.New(cors.Options{AllowedHeaders: []string{"*"}, AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"}}).Handler(r)
 	log.Info("Starting http server")
@@ -227,6 +228,30 @@ func updateSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 	err = ep.UpdateSnippet(snipp, ctx.Value("userId").(string))
 	if err != nil {
 		writeResponse(w, http.StatusInternalServerError, "borg-api: error")
+		return
+	}
+	writeResponse(w, http.StatusOK, "{}")
+}
+
+func snippetWorked(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to read body")
+		return
+	}
+	s := struct {
+		Query string
+		Id    string
+	}{}
+	if err := json.Unmarshal(body, &s); err != nil {
+		log.Errorf("[updateSnippet] invalid worked request, %s, input was %s", err.Error(), string(body))
+		writeResponse(w, http.StatusBadRequest, "borg-api: Invalid worked request")
+		return
+	}
+	err = ep.Worked(s.Id, s.Query)
+	if err != nil {
+		writeResponse(w, http.StatusInternalServerError, "borg-api: error")
+		return
 	}
 	writeResponse(w, http.StatusOK, "{}")
 }
