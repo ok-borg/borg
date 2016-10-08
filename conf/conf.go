@@ -9,23 +9,24 @@ import (
 )
 
 var (
-	// Print full request
+	// F flag prints full request
 	F = flag.Bool("f", false, "Print full results, ie. no more '...'")
 
-	// Limit results
+	// L flag limit results to a number
 	L = flag.Int("l", 5, "Result list limit. Defaults to 5")
 
-	// Hosts to connect to
+	// H flag specifies the host to connect to
 	H = flag.String("h", "borg.crufter.com", "Server to connect to")
 
-	// Private search
+	// P flag enables private search
 	P = flag.Bool("p", false, "Private search. Your search won't leave a trace. Pinky promise. Don't use this all the time if you want to see the search result relevancy improved")
 
-	// Debug mode
+	// D flag enables debug mode
 	D = flag.Bool("d", false, "Debug mode")
 )
 
 var (
+	// HomeDir of the config and other files
 	HomeDir string
 )
 
@@ -45,11 +46,13 @@ func init() {
 	}
 }
 
+// Config file
 type Config struct {
 	Token       string
 	DefaultTags []string
 }
 
+// Save config
 func (c Config) Save() error {
 	bs, err := yaml.Marshal(c)
 	if err != nil {
@@ -58,6 +61,7 @@ func (c Config) Save() error {
 	return ioutil.WriteFile(HomeDir+"/.borg/config.yml", bs, os.ModePerm)
 }
 
+// Get config
 func Get() (Config, error) {
 	bs, err := ioutil.ReadFile(HomeDir + "/.borg/config.yml")
 	if err != nil {

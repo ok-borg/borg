@@ -82,7 +82,7 @@ func Edit(queryIndex string) error {
 func getSnippet(id string) (*types.Problem, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%v/v1/p/%v", host(), id), nil)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Failed to create request: %v", err))
+		return nil, fmt.Errorf("Failed to create request: %v", err)
 	}
 	c, err := conf.Get()
 	if err != nil {
@@ -92,7 +92,7 @@ func getSnippet(id string) (*types.Problem, error) {
 	client := &http.Client{Timeout: time.Duration(10 * time.Second)}
 	rsp, err := client.Do(req)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error while making request: %v", err))
+		return nil, fmt.Errorf("Error while making request: %v", err)
 	}
 	defer rsp.Body.Close()
 	body, err := ioutil.ReadAll(rsp.Body)
@@ -100,7 +100,7 @@ func getSnippet(id string) (*types.Problem, error) {
 		return nil, err
 	}
 	if rsp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Status code: %v: %s", rsp.StatusCode, body))
+		return nil, fmt.Errorff("Status code: %v: %s", rsp.StatusCode, body)
 	}
 	ret := types.Problem{}
 	return &ret, json.Unmarshal(body, &ret)
