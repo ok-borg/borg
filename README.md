@@ -2,7 +2,7 @@
 
 BORG - A terminal based search engine for bash snippets 
 ===
-![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg)
+![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg) [![Go Report Card](https://goreportcard.com/badge/github.com/crufter/borg)](https://goreportcard.com/report/github.com/crufter/borg)
 
 Borg was built out of the frustration of having to leave the terminal to search for bash snippets.
 
