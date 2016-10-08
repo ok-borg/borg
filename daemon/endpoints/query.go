@@ -8,6 +8,7 @@ import (
 	"reflect"
 )
 
+// Query the borg
 func (e *Endpoints) Query(q string, size int, private bool) ([]types.Problem, error) {
 	if size > 50 {
 		size = 50

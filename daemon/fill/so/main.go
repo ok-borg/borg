@@ -55,6 +55,9 @@ func main() {
 		}
 		bodies := []string{}
 		doc, err := goquery.NewDocumentFromReader(bytes.NewReader([]byte(v[0])))
+		if err != nil {
+			panic(err)
+		}
 		doc.Find("pre code").Each((func(i int, s *goquery.Selection) {
 			bodies = append(bodies, s.Text())
 		}))

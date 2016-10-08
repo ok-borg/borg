@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// GenerateSitemap grabs all entries (now only ones added with borg) and saves a sitemap.xml.gz file in `sitemapPath`
 func GenerateSitemap(sitemapPath string, client *elastic.Client) {
 	defer func() {
 		if r := recover(); r != nil {

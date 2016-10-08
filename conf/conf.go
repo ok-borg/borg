@@ -9,10 +9,19 @@ import (
 )
 
 var (
+	// Print full request
 	F = flag.Bool("f", false, "Print full results, ie. no more '...'")
+
+	// Limit results
 	L = flag.Int("l", 5, "Result list limit. Defaults to 5")
+
+	// Hosts to connect to
 	H = flag.String("h", "borg.crufter.com", "Server to connect to")
+
+	// Private search
 	P = flag.Bool("p", false, "Private search. Your search won't leave a trace. Pinky promise. Don't use this all the time if you want to see the search result relevancy improved")
+
+	// Debug mode
 	D = flag.Bool("d", false, "Debug mode")
 )
 

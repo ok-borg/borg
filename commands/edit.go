@@ -42,6 +42,7 @@ func findIdFromQueryIndex(queryIndex int) (string, error) {
 	return l[queryIndex], nil
 }
 
+// Edit a snippet based on index from last query results
 func Edit(queryIndex string) error {
 	i, err := strconv.ParseInt(queryIndex, 10, 32)
 	if err != nil {

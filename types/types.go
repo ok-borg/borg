@@ -17,12 +17,12 @@ type Problem struct {
 
 type ImportMeta struct {
 	Source int    `json:"Source,omitempty"` // enum, 0 stackoverflow
-	Id     string `"json:"Id,omitempty"`
+	Id     string `json:"Id,omitempty"`
 }
 
 type Solution struct {
-	Body  []string `json:"Body,omitempty"`
-	Score int      `json:"Score,omitempty"`
+	Body  []string `json:"Body,omitempty"`  // this was a mistake to make it a string - after db correction and refactoring should get rid of it
+	Score int      `json:"Score,omitempty"` // this has values in the DB but they are not being used for anything. should nuke it. editing an entry nukes it anyway
 }
 
 type Solutions []Solution

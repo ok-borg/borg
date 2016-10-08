@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+// Query the borg server
 func Query(q string) error {
 	client := &http.Client{Timeout: time.Duration(10 * time.Second)}
 	req, err := http.NewRequest("GET", fmt.Sprintf("%v/v1/query?l=%v&p=%v&q=%v", host(), *conf.L, *conf.P, url.QueryEscape(q)), nil)

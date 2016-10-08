@@ -25,6 +25,7 @@ func extractPost(s string) (string, string, error) {
 	return title, body, nil
 }
 
+// New saves a new snippet into the borg mind
 func New() error {
 	cmd := exec.Command("vim", "-c", "startinsert", conf.HomeDir+"/.borg/edit")
 	cmd.Stdin = os.Stdin
@@ -64,7 +65,7 @@ func saveSnippet(p types.Problem) error {
 	}
 	req, err := http.NewRequest(method, fmt.Sprintf("%v/v1/p", host()), bytes.NewReader(bs))
 	if err != nil {
-		return errors.New(fmt.Sprintf("Failed to create request: %v", err))
+		return fmt.Errorf("Failed to create request: %v", err)
 	}
 	c, err := conf.Get()
 	if err != nil {
@@ -74,7 +75,7 @@ func saveSnippet(p types.Problem) error {
 	client := &http.Client{Timeout: time.Duration(10 * time.Second)}
 	rsp, err := client.Do(req)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error while making request: %v", err))
+		return fmt.Errorf("Error while making request: %v", err)
 	}
 	defer rsp.Body.Close()
 	body, err := ioutil.ReadAll(rsp.Body)
@@ -82,7 +83,7 @@ func saveSnippet(p types.Problem) error {
 		return err
 	}
 	if rsp.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("Status code: %v: %s", rsp.StatusCode, body))
+		return fmt.Errorf("Status code: %v: %s", rsp.StatusCode, body)
 	}
 	return nil
 }

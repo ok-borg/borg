@@ -10,6 +10,7 @@ import (
 	"reflect"
 )
 
+// NewEndpoints is just below the http handlers
 func NewEndpoints(oauthCfg *oauth2.Config, client *elastic.Client, a *ga.Client) *Endpoints {
 	return &Endpoints{
 		oauthCfg:  oauthCfg,
@@ -18,19 +19,21 @@ func NewEndpoints(oauthCfg *oauth2.Config, client *elastic.Client, a *ga.Client)
 	}
 }
 
+// Endpoints represents all endpoints of the http server
 type Endpoints struct {
 	oauthCfg  *oauth2.Config
 	client    *elastic.Client
 	analytics *ga.Client
 }
 
+// GithubAuth exchanges a github code for a token, registers and returns a User
 func (e *Endpoints) GithubAuth(code string) (*User, error) {
 	if len(code) == 0 {
 		return nil, errors.New("Code received is empty")
 	}
 	tkn, err := e.oauthCfg.Exchange(oauth2.NoContext, code)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("there was an issue getting your token: %v", err))
+		return nil, fmt.Errorf("there was an issue getting your token: %v", err)
 	}
 	if !tkn.Valid() {
 		return nil, errors.New("Reretreived invalid token")
@@ -38,26 +41,28 @@ func (e *Endpoints) GithubAuth(code string) (*User, error) {
 	client := github.NewClient(e.oauthCfg.Client(oauth2.NoContext, tkn))
 	user, _, err := client.Users.Get("")
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("error getting name: %v", err))
+		return nil, fmt.Errorf("error getting name: %v", err)
 	}
 	usr, err := toUser(user)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("error converting user: %v", err))
+		return nil, fmt.Errorf("error converting user: %v", err)
 	}
 	usr.Token = tkn.AccessToken
 	// we just set the user every time for now. reuse github id. save token next to it. identify
 	// user by querying users with that token.
 	err = e.setUser(*usr)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("error converting user: %v", err))
+		return nil, fmt.Errorf("error converting user: %v", err)
 	}
 	return usr, nil
 }
 
+// GetUser by token
 func (e *Endpoints) GetUser(token string) (*User, error) {
 	return e.readUser("Token", token)
 }
 
+// User represents a borg user
 type User struct {
 	Id       string
 	Login    string
@@ -100,7 +105,7 @@ func (e *Endpoints) readUser(field, equalsTo string) (*User, error) {
 	case len(users) == 0:
 		return nil, nil
 	case len(users) > 1:
-		return nil, errors.New(fmt.Sprintf("Multiple users found with %v %v ", field, equalsTo))
+		return nil, fmt.Errorf("Multiple users found with %v %v ", field, equalsTo)
 	}
 	return &users[0], nil
 }
