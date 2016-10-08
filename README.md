@@ -104,13 +104,13 @@ chmod 755 /usr/local/bin/borg
 
 Any logged in user can edit any content. We trust you with not being a vandal.
 
-#### Can be borg mine and only mine?
+### Can be borg mine and only mine?
 
 The client connects to a server at borg.crufter.com, but you can host your own if you want to (see daemon folder).
 
 Self hosting will become less appealing once people start contributing their own content to the database though.
 
-#### Features
+### Features
 
 Command line:
 - search, add, edit content
@@ -118,7 +118,7 @@ Command line:
 Web:
 - login, search, add, edit content
 
-#### Future plans
+### Future plans
 
 - add a way to save private and organisation private entries
 - enable users to rate results
@@ -130,7 +130,7 @@ Web:
 - `[]` denotes snippets found for a given query
 - `...` under a `[]` means more lines to display (use the `-f` flag for full display, see more about usage below)
 
-#### Usage
+### Usage
 
 Borg supports gnu flags, so flags are supported both before and after the arguments, so all of the followings are valid:
 
@@ -153,7 +153,7 @@ But what do they do?
     Private search. Your search won't leave a trace. Pinky promise. Don't use this all the time if you want to see the search result relevancy improved
 ```
 
-#### Credits
+### Credits
 
 The borg mascot has been delivered to you by the amazing [Fabricio Rosa Marques](https://dribbble.com/fabric8).
 
