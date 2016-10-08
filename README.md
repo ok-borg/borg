@@ -83,7 +83,7 @@ Save and exit.
 ### Install
 
 ```
-brew intall borg
+brew install borg
 ```
 
 For linux, download a release manually [releases](https://github.com/crufter/borg/releases)
