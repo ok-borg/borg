@@ -15,20 +15,12 @@ import (
 	"strings"
 )
 
-func main() {
+func problems() []types.Problem {
 	b1, err := ioutil.ReadFile("./QuestionsGitOver4.csv")
 	if err != nil {
 		panic(err)
 	}
-	b2, err := ioutil.ReadFile("./AnswersToGitOver4.csv")
-	if err != nil {
-		panic(err)
-	}
 	qrs, err := csv.NewReader(bytes.NewReader(b1)).ReadAll()
-	if err != nil {
-		panic(err)
-	}
-	ars, err := csv.NewReader(bytes.NewReader(b2)).ReadAll()
 	if err != nil {
 		panic(err)
 	}
@@ -42,6 +34,18 @@ func main() {
 				Id:     v[0],
 			},
 		})
+	}
+	return qs
+}
+
+func solutions() map[string][]types.Solution {
+	b2, err := ioutil.ReadFile("./AnswersToGitOver4.csv")
+	if err != nil {
+		panic(err)
+	}
+	ars, err := csv.NewReader(bytes.NewReader(b2)).ReadAll()
+	if err != nil {
+		panic(err)
 	}
 	as := map[string][]types.Solution{}
 	filtered := 0
@@ -86,12 +90,18 @@ func main() {
 		})
 	}
 	fmt.Println(fmt.Sprintf("Filtered out %v bodies", filtered))
+	return as
+}
+
+func main() {
+	qs := problems()
+	as := solutions()
 	for i, problem := range qs {
 		problem.Solutions = as[problem.Id]
 		sort.Sort(types.Solutions(problem.Solutions))
 		qs[i] = problem
 	}
-	filtered = 0
+	filtered := 0
 	origiSize := len(qs)
 	qs = func(fqs []types.Problem) []types.Problem {
 		ret := []types.Problem{}
@@ -106,6 +116,10 @@ func main() {
 		return ret
 	}(qs)
 	fmt.Println(fmt.Sprintf("Filtered %v ps out of %v", filtered, origiSize))
+	saveProblems(qs)
+}
+
+func saveProblems(qs []types.Problem) {
 	client, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL("http://borg.crufter.com:9200"))
 	if err != nil {
 		panic(err)
@@ -116,7 +130,7 @@ func main() {
 		if i%100 == 0 {
 			fmt.Println(fmt.Sprintf("Done %v out of %v", i, len(qs)))
 		}
-		_, err = client.Index().
+		_, err := client.Index().
 			Index("borg").
 			Type("problem").
 			Id(p.Id).

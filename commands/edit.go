@@ -100,7 +100,7 @@ func getSnippet(id string) (*types.Problem, error) {
 		return nil, err
 	}
 	if rsp.StatusCode != 200 {
-		return nil, fmt.Errorff("Status code: %v: %s", rsp.StatusCode, body)
+		return nil, fmt.Errorf("Status code: %v: %s", rsp.StatusCode, body)
 	}
 	ret := types.Problem{}
 	return &ret, json.Unmarshal(body, &ret)
