@@ -6,13 +6,13 @@ import (
 
 type Problem struct {
 	Id            string     `json:"Id"`
-	Title         string     `json:"Title"`
-	Solutions     []Solution `json:"Solutions"`
-	ImportMeta    ImportMeta `json:"ImportMeta"`
-	CreatedBy     string     `json:"CreatedBy"`
-	Created       time.Time  `json:"Created"`
-	LastUpdatedBy string     `json:"LastUpdatedBy"`
-	LastUpdated   time.Time  `json:"Updated"`
+	Title         string     `json:"Title,omitempty"`
+	Solutions     []Solution `json:"Solutions,omitempty"`
+	ImportMeta    ImportMeta `json:"ImportMeta,omitempty"`
+	CreatedBy     string     `json:"CreatedBy,omitempty"`
+	Created       time.Time  `json:"Created,omitempty"`
+	LastUpdatedBy string     `json:"LastUpdatedBy,omitempty"`
+	LastUpdated   time.Time  `json:"Updated,omitempty"`
 }
 
 type ImportMeta struct {
@@ -21,8 +21,8 @@ type ImportMeta struct {
 }
 
 type Solution struct {
-	Body  []string `json:"Body"`
-	Score int      `json:"Score"`
+	Body  []string `json:"Body,omitempty"`
+	Score int      `json:"Score,omitempty"`
 }
 
 type Solutions []Solution

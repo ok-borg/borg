@@ -35,6 +35,10 @@ func Query(q string) error {
 	if err != nil {
 		return errors.New("Malformed response from server")
 	}
+	err = writeToFile(q, problems)
+	if err != nil {
+		fmt.Println(err)
+	}
 	renderQuery(problems)
 	return nil
 }
@@ -50,10 +54,10 @@ func renderQuery(problems []types.Problem) {
 		line := 0
 	Loop:
 		for x, sol := range prob.Solutions {
-			fmt.Fprintf(w, "\t[%v%v]", i+1, x+1)
+			fmt.Fprintf(w, "\t[%v]", toChar(x))
 			for i, bodyPart := range sol.Body {
 				if i > 0 {
-					fmt.Fprintln(w, "\t\t", "-")
+					fmt.Fprintln(w, "\t\t", "")
 				}
 				bodyPartLines := strings.Split(bodyPart, "\n")
 				for j, bodyPartLine := range bodyPartLines {
@@ -77,6 +81,26 @@ func renderQuery(problems []types.Problem) {
 	w.Flush()
 }
 
+func writeToFile(query string, ps []types.Problem) error {
+	m := map[string]interface{}{
+		"query": query,
+	}
+	ids := []string{}
+	for _, v := range ps {
+		ids = append(ids, v.Id)
+	}
+	m["ids"] = ids
+	bs, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(conf.HomeDir+"/.borg/query", bs, 0755)
+}
+
 func host() string {
 	return fmt.Sprintf("http://%v:9992", *conf.H)
+}
+
+func toChar(i int) string {
+	return string('a' + i)
 }

@@ -1,40 +1,41 @@
-package auth
+package endpoints
 
 import (
 	"errors"
 	"fmt"
 	"github.com/google/go-github/github"
-	//"github.com/ventu-io/go-shortid"
+	"github.com/jpillora/go-ogle-analytics"
 	"golang.org/x/oauth2"
 	"gopkg.in/olivere/elastic.v2"
-
 	"reflect"
 )
 
-func NewAuth(oauthCfg *oauth2.Config, client *elastic.Client) *Auth {
-	return &Auth{
-		oauthCfg: oauthCfg,
-		client:   client,
+func NewEndpoints(oauthCfg *oauth2.Config, client *elastic.Client, a *ga.Client) *Endpoints {
+	return &Endpoints{
+		oauthCfg:  oauthCfg,
+		client:    client,
+		analytics: a,
 	}
 }
 
-type Auth struct {
-	oauthCfg *oauth2.Config
-	client   *elastic.Client
+type Endpoints struct {
+	oauthCfg  *oauth2.Config
+	client    *elastic.Client
+	analytics *ga.Client
 }
 
-func (auth *Auth) GithubAuth(code string) (*User, error) {
+func (e *Endpoints) GithubAuth(code string) (*User, error) {
 	if len(code) == 0 {
 		return nil, errors.New("Code received is empty")
 	}
-	tkn, err := auth.oauthCfg.Exchange(oauth2.NoContext, code)
+	tkn, err := e.oauthCfg.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("there was an issue getting your token: %v", err))
 	}
 	if !tkn.Valid() {
 		return nil, errors.New("Reretreived invalid token")
 	}
-	client := github.NewClient(auth.oauthCfg.Client(oauth2.NoContext, tkn))
+	client := github.NewClient(e.oauthCfg.Client(oauth2.NoContext, tkn))
 	user, _, err := client.Users.Get("")
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("error getting name: %v", err))
@@ -46,15 +47,15 @@ func (auth *Auth) GithubAuth(code string) (*User, error) {
 	usr.Token = tkn.AccessToken
 	// we just set the user every time for now. reuse github id. save token next to it. identify
 	// user by querying users with that token.
-	err = auth.setUser(*usr)
+	err = e.setUser(*usr)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("error converting user: %v", err))
 	}
 	return usr, nil
 }
 
-func (auth *Auth) GetUser(token string) (*User, error) {
-	return auth.readUser("Token", token)
+func (e *Endpoints) GetUser(token string) (*User, error) {
+	return e.readUser("Token", token)
 }
 
 type User struct {
@@ -82,9 +83,9 @@ func toUser(user *github.User) (*User, error) {
 	return ret, nil
 }
 
-func (auth *Auth) readUser(field, equalsTo string) (*User, error) {
+func (e *Endpoints) readUser(field, equalsTo string) (*User, error) {
 	termQuery := elastic.NewTermQuery(field, equalsTo)
-	res, err := auth.client.Search().Index("borg").Type("user").Query(termQuery).From(0).Size(2).Do()
+	res, err := e.client.Search().Index("borg").Type("user").Query(termQuery).From(0).Size(2).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -105,8 +106,8 @@ func (auth *Auth) readUser(field, equalsTo string) (*User, error) {
 }
 
 // register or update the token
-func (auth *Auth) setUser(user User) error {
-	_, err := auth.client.Index().
+func (e *Endpoints) setUser(user User) error {
+	_, err := e.client.Index().
 		Index("borg").
 		Type("user").
 		Id(user.Id).

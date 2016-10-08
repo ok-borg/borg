@@ -1,10 +1,10 @@
 <p align="center"><img height="180px" width="180px" src="https://github.com/fabric-8/borg/raw/master/borg_mascot.png" alt=""></p>
 
-BORG - A terminal based search engine for bash commands
+BORG - A terminal based search engine for bash snippets 
 ===
 ![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg) [ok-b.org](http://ok-b.org)
 
-Borg was built out of the frustration of having to leave the terminal to search for bash commands.
+Borg was built out of the frustration of having to leave the terminal to search for bash snippets.
 Its succinct output also makes it easier to glance over multiple snippets of code.
 
 This is how it looks like:
@@ -72,6 +72,12 @@ wget https://github.com/crufter/borg/releases/download/v0.0.1/borg_darwin_amd64 
 chmod 755 /usr/local/bin/borg
 ```
 
+On Mac you can also use HomeBrew (however, probably brew releases will lag behind github releases, if you want the latest, see above):
+
+```
+brew intall borg
+```
+
 Now you are ready to rock! Query with `borg "my query"`, because there is a server listening to your questions and eager to help!
 Keep querying, and let me know if you want something to be improved.
 
@@ -91,7 +97,7 @@ Self hosting will become less appealing once people start contributing their own
 #### Future plans
 
 - add a way to add public, private and organisation private entries
-- enabling users to rate solutions
+- enabling users to rate snippets
 - way more, but first let's tackle the ones above =)
 
 #### Credits

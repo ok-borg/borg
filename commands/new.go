@@ -17,16 +17,16 @@ import (
 
 func extractPost(s string) (string, string, error) {
 	ss := strings.Split(s, "\n")
-	if len(ss) < 2 {
-		return "", "", errors.New("Content too short")
+	if len(ss) < 3 {
+		return "", "", errors.New("Content too short must be at least 3 lines")
 	}
 	title := strings.TrimSpace(ss[0])
-	body := strings.TrimSpace(ss[1])
+	body := strings.TrimSpace(strings.Join(ss[1:], "\n"))
 	return title, body, nil
 }
 
 func New() error {
-	cmd := exec.Command("vim", conf.HomeDir+"/.borg/edit")
+	cmd := exec.Command("vim", "-c", "startinsert", conf.HomeDir+"/.borg/edit")
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Run()
@@ -38,6 +38,9 @@ func New() error {
 	if err != nil {
 		return err
 	}
+	if len(t) == 0 || len(b) == 0 {
+		return errors.New("Title or body is empty")
+	}
 	p := types.Problem{
 		Title: t,
 		Solutions: []types.Solution{
@@ -46,14 +49,28 @@ func New() error {
 			},
 		},
 	}
-	bs, err = json.Marshal(p)
+	return saveSnippet(p)
+}
+
+// POSTS or PUTS based on id existence
+func saveSnippet(p types.Problem) error {
+	method := "POST"
+	if len(p.Id) > 0 {
+		method = "PUT"
+	}
+	bs, err := json.Marshal(p)
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", fmt.Sprintf("%v/v1/p", host()), bytes.NewReader(bs))
+	req, err := http.NewRequest(method, fmt.Sprintf("%v/v1/p", host()), bytes.NewReader(bs))
 	if err != nil {
 		return errors.New(fmt.Sprintf("Failed to create request: %v", err))
 	}
+	c, err := conf.Get()
+	if err != nil {
+		return err
+	}
+	req.Header.Add("authorization", c.Token)
 	client := &http.Client{Timeout: time.Duration(10 * time.Second)}
 	rsp, err := client.Do(req)
 	if err != nil {

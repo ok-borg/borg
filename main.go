@@ -19,6 +19,8 @@ func main() {
 		err = commands.New()
 	case "login":
 		err = commands.Login(flag.Arg(1))
+	case "edit":
+		err = commands.Edit(flag.Arg(1))
 	default:
 		err = commands.Query(flag.Arg(0))
 	}

@@ -27,6 +27,12 @@ func init() {
 	HomeDir = usr.HomeDir
 	os.Mkdir(HomeDir+"/.borg", os.ModePerm)
 	os.Create(HomeDir + "/.borg/edit")
+	if _, err := os.Stat(HomeDir + "/.borg/config.yml"); os.IsNotExist(err) {
+		os.Create(HomeDir + "/.borg/config.yml")
+	}
+	if _, err := os.Stat(HomeDir + "/.borg/query"); os.IsNotExist(err) {
+		os.Create(HomeDir + "/.borg/query")
+	}
 }
 
 type Config struct {

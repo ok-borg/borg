@@ -7,16 +7,14 @@ import (
 	"golang.org/x/net/context"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strconv"
-	"sync"
 	"time"
 
 	log "github.com/cihub/seelog"
-	"github.com/crufter/borg/daemon/auth"
+	"github.com/crufter/borg/daemon/access"
+	"github.com/crufter/borg/daemon/endpoints"
+	"github.com/crufter/borg/daemon/sitemap"
 	"github.com/crufter/borg/types"
-	"github.com/crufter/slugify"
-	"github.com/joeguo/sitemap"
 	"github.com/jpillora/go-ogle-analytics"
 	httpr "github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
@@ -37,35 +35,12 @@ var (
 )
 
 var (
-	client                 *elastic.Client
-	aut                    *auth.Auth
-	accessControl          map[string]UserAccess
-	mtx                    = &sync.Mutex{}
-	lastAccessControlReset = time.Now()
-	analyticsClient        *ga.Client
-)
-
-type AccessKinds int
-
-// FIXME(jeremy): should be in config
-// maximum access for write and updates
-const (
-	maxCreate = 100
-	maxUpdate = 50
-)
-
-// acces kings
-const (
-	Create AccessKinds = iota
-	Update
+	client          *elastic.Client
+	analyticsClient *ga.Client
+	ep              *endpoints.Endpoints
 )
 
 type Logger struct{}
-
-type UserAccess struct {
-	Update int
-	Create int
-}
 
 func (l Logger) Printf(str string, i ...interface{}) {
 	fmt.Println(fmt.Sprintf(str, i...))
@@ -78,12 +53,13 @@ func init() {
 		panic(err)
 	}
 	client = cl
-	accessControl = map[string]UserAccess{}
-	acl, err := ga.NewClient(*analytics)
-	if err != nil {
-		log.Errorf("Failed to acquire analytics client id: %v", err)
+	if len(*analytics) > 0 {
+		acl, err := ga.NewClient(*analytics)
+		if err != nil {
+			log.Errorf("Failed to acquire analytics client id: %v", err)
+		}
+		analyticsClient = acl
 	}
-	analyticsClient = acl
 }
 
 func main() {
@@ -95,25 +71,25 @@ func main() {
 		},
 		Scopes: []string{"read:org"},
 	}
-	aut = auth.NewAuth(oauthCfg, client)
+	ep = endpoints.NewEndpoints(oauthCfg, client, analyticsClient)
 	r := httpr.New()
 	if len(*sm) > 0 {
-		go sitemapLoop()
+		go sitemapLoop(*sm, client)
 	}
 
 	r.GET("/v1/redirect/github/authorize", redirectGithubAuthorize)
-	r.GET("/v1/query", query)
+	r.GET("/v1/query", q)
 	r.POST("/v1/auth/github", githubAuth)
 
 	// authenticated endpoints
-	r.GET("/v1/user", ifAuth(getUser))
+	r.GET("/v1/user", access.IfAuth(client, getUser))
 
 	// snippets
 	r.GET("/v1/p/:id", getSnippet)
 	r.GET("/v1/latest", getLatestSnippets)
-	r.POST("/v1/p", ifAuth(controlAccess(createSnippet, Create)))
-	r.DELETE("/v1/p/:id", ifAuth(deleteSnippet))
-	r.PUT("/v1/p", ifAuth(controlAccess(updateSnippet, Update)))
+	r.POST("/v1/p", access.IfAuth(client, access.Control(createSnippet, access.Create)))
+	//r.DELETE("/v1/p/:id", access.IfAuth(deleteSnippet))
+	r.PUT("/v1/p", access.IfAuth(client, access.Control(updateSnippet, access.Update)))
 
 	handler := cors.New(cors.Options{AllowedHeaders: []string{"*"}, AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"}}).Handler(r)
 	log.Info("Starting http server")
@@ -132,93 +108,6 @@ func writeResponse(w http.ResponseWriter, status int, body string) {
 	fmt.Fprintf(w, `%v`, body)
 }
 
-func updateTimer() {
-	mtx.Lock()
-	// if last reset was 24 or more ago
-	if time.Since(lastAccessControlReset) >= (time.Hour * 24) {
-		// reset the time
-		lastAccessControlReset = time.Now()
-		accessControl = map[string]UserAccess{}
-	}
-
-	mtx.Unlock()
-}
-
-func controlAccess(handler func(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params), ctrl AccessKinds) func(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
-		// get the token from the context
-		token := ctx.Value("token").(string)
-
-		// check if we need to reset the map
-
-		mtx.Lock()
-		// check if the user can still write
-		if ctrl == Create {
-			if ac, ok := accessControl[token]; !ok {
-				newAc := UserAccess{Create: 1}
-				accessControl[token] = newAc
-			} else {
-				if ac.Create >= maxCreate {
-					writeResponse(w, http.StatusUnauthorized, "borg-api: api max create reached")
-					return
-				} else {
-					ac.Create += 1
-					accessControl[token] = ac
-				}
-			}
-		}
-
-		if ctrl == Update {
-			if ac, ok := accessControl[token]; !ok {
-				newAc := UserAccess{Update: 1}
-				accessControl[token] = newAc
-			} else {
-				if ac.Create >= maxUpdate {
-					writeResponse(w, http.StatusUnauthorized, "borg-api: api max update reached")
-					return
-				} else {
-					ac.Create += 1
-					accessControl[token] = ac
-				}
-			}
-		}
-
-		// just log some shit
-		log.Infof("[user access control] token: %s -> %#v", token, accessControl[token])
-
-		mtx.Unlock()
-
-		// then call the handler
-		handler(ctx, w, r, p)
-	}
-}
-
-// simple helper to check if the user is auth in the application,
-// if logged process the handler, or return directly
-func ifAuth(handler func(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params)) func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
-	return func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
-		var token string
-		if token = r.FormValue("token"); token == "" {
-			if token = r.Header.Get("Authorization"); token == "" {
-				if token = r.Header.Get("authorization"); token == "" {
-					writeResponse(w, http.StatusUnauthorized, "borg-api: Missing access token")
-					return
-				}
-			}
-		}
-		u, err := aut.GetUser(token)
-		if err != nil || u == nil {
-			// github may not recognize the token, return an error
-			writeResponse(w, http.StatusUnauthorized, "borg-api: Invalid access token")
-			return
-		}
-		// no errors, process the handler
-		ctx := context.WithValue(context.Background(), "token", token)
-		ctx = context.WithValue(ctx, "userId", u.Id)
-		handler(ctx, w, r, p)
-	}
-}
-
 // just redirect the user with the url to the github oauth login with the client_id
 // setted in the backend
 func redirectGithubAuthorize(w http.ResponseWriter, r *http.Request, p httpr.Params) {
@@ -234,7 +123,7 @@ func githubAuth(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	if err != nil {
 		panic(err)
 	}
-	user, err := aut.GithubAuth(string(body))
+	user, err := ep.GithubAuth(string(body))
 	if err != nil {
 		fmt.Fprintln(w, fmt.Sprintf("Auth failed: %v", err))
 		return
@@ -247,7 +136,7 @@ func githubAuth(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 }
 
 func getUser(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
-	user, err := aut.GetUser(r.FormValue("token"))
+	user, err := ep.GetUser(r.FormValue("token"))
 	if err != nil {
 		fmt.Fprintln(w, fmt.Sprintf("Getting user failed: %v", err))
 		return
@@ -263,90 +152,100 @@ func getUser(ctx context.Context, w http.ResponseWriter, r *http.Request, p http
 	fmt.Fprint(w, string(bs))
 }
 
-func query(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+func q(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	size := 5
 	s, err := strconv.ParseInt(r.FormValue("l"), 10, 32)
 	if err == nil && s > 0 {
 		size = int(s)
 	}
-	if size > 50 {
-		size = 50
-	}
-	q := r.FormValue("q")
-	ql := q
-	if r.FormValue("p") == "true" {
-		ql = "PRIVATE"
-	}
-	if len(*analytics) > 0 {
-		log.Infof("Querying %v with size '%v'", ql, size)
-		err = analyticsClient.Send(ga.NewEvent("search", "backend").Label(ql))
-		if err != nil {
-			log.Warnf("Failed to send analytics events: %v", err)
-		}
-	}
-	res, err := client.Search().Index("borg").Type("problem").From(0).Size(size).Query(
-		elastic.NewMultiMatchQuery(q).FieldWithBoost("Title", 5.0).Field("Solutions.Body")).Do()
+	res, err := ep.Query(r.FormValue("q"), size, r.FormValue("p") == "true")
 	if err != nil {
-		panic(err)
+		writeResponse(w, http.StatusInternalServerError, err.Error())
 	}
-	all := []types.Problem{}
-	var ttyp types.Problem
-	for _, item := range res.Each(reflect.TypeOf(ttyp)) {
-		if t, ok := item.(types.Problem); ok {
-			all = append(all, t)
-		}
-	}
-	bs, err := json.Marshal(all)
+	bs, err := json.Marshal(res)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Fprint(w, string(bs))
 }
 
-func sitemapLoop() {
+func sitemapLoop(path string, client *elastic.Client) {
 	first := true
 	for {
 		if !first {
 			time.Sleep(30 * time.Minute)
 		}
 		first = false
-		generateSitemap()
+		sitemap.GenerateSitemap(path, client)
 	}
 }
 
-func generateSitemap() {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Warnf("Sitemap generation failed: %v", r)
-		}
-	}()
-	// this query is because we only want to show user submitted content for now - not ones scraped from somewhere else - to not piss of google
-	// @TODO include ones which were changed substantially
-	// @TODO this is going to get dog slow
-	res, err := client.Search().Query(elastic.NewFilteredQuery(elastic.NewRegexpFilter("CreatedBy", ".{3,}"))).Size(500).Do()
+func getLatestSnippets(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	res, err := ep.GetLatestSnippets()
+	if err != nil {
+		writeResponse(w, http.StatusInternalServerError, err.Error())
+	}
+	bs, err := json.Marshal(res)
 	if err != nil {
 		panic(err)
 	}
-	all := []types.Problem{}
-	var ttyp types.Problem
-	for _, item := range res.Each(reflect.TypeOf(ttyp)) {
-		if t, ok := item.(types.Problem); ok {
-			all = append(all, t)
-		}
-	}
-	items := []*sitemap.Item{}
-	for _, v := range all {
-		item := &sitemap.Item{
-			Loc:        "http://ok-b.org/t/" + fmt.Sprintf("%v/%v", v.Id, slugify.S(v.Title)),
-			LastMod:    time.Now(),
-			Priority:   0.5,
-			Changefreq: "daily",
-		}
-		items = append(items, item)
-	}
-	err = sitemap.SiteMap(*sm+"/sitemap.xml.gz", items)
+	writeResponse(w, http.StatusOK, string(bs))
+}
+
+func createSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		panic(err)
+		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to read body")
+		return
 	}
-	log.Info("Generated sitemap successfully")
+	var snipp types.Problem
+	if err := json.Unmarshal(body, &snipp); err != nil {
+		log.Errorf("Invalid snippet, %s, input was %s", err.Error(), string(body))
+		writeResponse(w, http.StatusBadRequest, "borg-api: Invalid snippet")
+		return
+	}
+	err = ep.CreateSnippet(snipp, ctx.Value("userId").(string))
+	if err != nil {
+		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to unmarshal snippet")
+		return
+	}
+	writeJsonResponse(w, http.StatusOK, snipp)
+}
+
+func updateSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to read body")
+		return
+	}
+	var snipp types.Problem
+	if err := json.Unmarshal(body, &snipp); err != nil {
+		log.Errorf("[updateSnippet] invalid snippet, %s, input was %s", err.Error(), string(body))
+		writeResponse(w, http.StatusBadRequest, "borg-api: Invalid snippet")
+		return
+	}
+	err = ep.UpdateSnippet(snipp, ctx.Value("userId").(string))
+	if err != nil {
+		writeResponse(w, http.StatusInternalServerError, "borg-api: error")
+	}
+	writeResponse(w, http.StatusOK, "{}")
+}
+
+func getSnippet(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	id := p.ByName("id")
+	if len(id) == 0 {
+		writeResponse(w, http.StatusBadRequest, "borg-api: Missing id url parameter")
+		return
+	}
+	snipp, err := ep.GetSnippet(id)
+	if err != nil {
+		writeResponse(w, http.StatusInternalServerError, "borg-api: Failed to get snippet")
+		return
+	}
+	if snipp == nil {
+		writeResponse(w, http.StatusNotFound, "borg-api: snippet not found")
+		return
+	}
+	bs, _ := json.Marshal(snipp)
+	writeResponse(w, http.StatusOK, string(bs))
 }
