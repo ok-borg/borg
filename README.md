@@ -27,7 +27,6 @@ Some explanations for the UI:
 - `()` denotes hits for your query
 - `[]` denotes snippets found for a given query
 - `...` under a `[]` means more lines to display (use the `-f` flag for full display, see more about usage below)
-- a `-` in a solution means separate code snippets extracted from the same source
 
 #### State
 
