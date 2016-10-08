@@ -82,6 +82,8 @@ Save and exit.
 
 ### Install
 
+The following releases only let you search, to use add/edit install from source, releases are coming soon.
+
 ```
 brew install borg
 ```
