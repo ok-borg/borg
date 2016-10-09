@@ -250,7 +250,7 @@ func snippetWorked(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 	}
 	err = ep.Worked(s.Id, s.Query)
 	if err != nil {
-		writeResponse(w, http.StatusInternalServerError, "borg-api: error")
+		writeResponse(w, http.StatusInternalServerError, "borg-api: error: "+err.Error())
 		return
 	}
 	writeResponse(w, http.StatusOK, "{}")

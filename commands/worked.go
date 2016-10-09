@@ -54,7 +54,7 @@ func saveWorked(id, query string) error {
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", fmt.Sprintf("%v/v1/p", host()), bytes.NewReader(bs))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%v/v1/worked", host()), bytes.NewReader(bs))
 	if err != nil {
 		return fmt.Errorf("Failed to create request: %v", err)
 	}
