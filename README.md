@@ -106,7 +106,7 @@ chmod 755 /usr/local/bin/borg
 
 Any logged in user can edit any content. We trust you with not being a vandal.
 
-### Can be borg mine and only mine?
+### Can borg be mine and only mine?
 
 The client connects to a server at borg.crufter.com, but you can host your own if you want to (see daemon folder).
 
