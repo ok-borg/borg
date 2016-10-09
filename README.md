@@ -102,6 +102,16 @@ wget https://github.com/crufter/borg/releases/download/v0.0.1/borg_darwin_amd64 
 chmod 755 /usr/local/bin/borg
 ```
 
+### Rate results: `worked`
+
+When you see a result that worked for you, you can use the `worked` command to give feedback:
+
+```
+borg worked 12
+```
+
+Once you do this the result will rank higher for similar queries - it is especially useful if you find a good result that you think are too down in the result list.
+
 ### Who can add/edit what?
 
 Any logged in user can edit any content. We trust you with not being a vandal.
@@ -111,20 +121,6 @@ Any logged in user can edit any content. We trust you with not being a vandal.
 The client connects to a server at borg.crufter.com, but you can host your own if you want to (see daemon folder).
 
 Self hosting will become less appealing once people start contributing their own content to the database though.
-
-### Features
-
-Command line:
-- search, add, edit content
-
-Web:
-- login, search, add, edit content
-
-### Future plans
-
-- add a way to save private and organisation private entries
-- enable users to rate results
-- after a lot of lot of things make borg your own notebook/private search engine for anything
 
 ### Explanation for ui
 
