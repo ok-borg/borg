@@ -56,7 +56,7 @@ func Edit(queryIndex string) error {
 	if err != nil {
 		return err
 	}
-	str := generateEditFile(s)
+	str := problemToText(s)
 	ioutil.WriteFile(conf.HomeDir+"/.borg/edit", []byte(str), 0755)
 	cmd := exec.Command("vim", conf.HomeDir+"/.borg/edit")
 	cmd.Stdin = os.Stdin
@@ -66,7 +66,7 @@ func Edit(queryIndex string) error {
 	if err != nil {
 		return err
 	}
-	p, err := parseEditFile(string(bs))
+	p, err := textToProblem(string(bs))
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ var tpl = `{{.Title}}
 {{join $element.Body}}{{end}}
 `
 
-func generateEditFile(p *types.Problem) string {
+func problemToText(p *types.Problem) string {
 	b := []byte{}
 	buffer := bytes.NewBuffer(b)
 	funcs := map[string]interface{}{
@@ -126,7 +126,7 @@ func generateEditFile(p *types.Problem) string {
 }
 
 // very primitive right now...
-func parseEditFile(s string) (types.Problem, error) {
+func textToProblem(s string) (types.Problem, error) {
 	ret := types.Problem{}
 	lines := strings.Split(s, "\n")
 	// wish i had a parser combinator library to do this...

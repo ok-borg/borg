@@ -205,7 +205,7 @@ func createSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 		writeResponse(w, http.StatusBadRequest, "borg-api: Invalid snippet")
 		return
 	}
-	err = ep.CreateSnippet(snipp, ctx.Value("userId").(string))
+	err = ep.CreateSnippet(&snipp, ctx.Value("userId").(string))
 	if err != nil {
 		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to unmarshal snippet")
 		return
@@ -225,7 +225,7 @@ func updateSnippet(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 		writeResponse(w, http.StatusBadRequest, "borg-api: Invalid snippet")
 		return
 	}
-	err = ep.UpdateSnippet(snipp, ctx.Value("userId").(string))
+	err = ep.UpdateSnippet(&snipp, ctx.Value("userId").(string))
 	if err != nil {
 		writeResponse(w, http.StatusInternalServerError, "borg-api: error")
 		return

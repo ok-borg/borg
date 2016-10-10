@@ -52,7 +52,7 @@ func (e *Endpoints) GetLatestSnippets() ([]types.Problem, error) {
 }
 
 // CreateSnippet saves a snippet, generates id
-func (e Endpoints) CreateSnippet(snipp types.Problem, userId string) error {
+func (e Endpoints) CreateSnippet(snipp *types.Problem, userId string) error {
 	if snipp.Title == "" || len(snipp.Solutions) == 0 {
 		return errors.New("Title or solutions missing")
 	}
@@ -71,7 +71,7 @@ func (e Endpoints) CreateSnippet(snipp types.Problem, userId string) error {
 }
 
 // UpdateSnippet saves a snippet
-func (e Endpoints) UpdateSnippet(snipp types.Problem, userId string) error {
+func (e Endpoints) UpdateSnippet(snipp *types.Problem, userId string) error {
 	if snipp.Id == "" {
 		return errors.New("No id found")
 	}

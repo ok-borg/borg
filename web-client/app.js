@@ -34,17 +34,21 @@ app.factory('Session', function($http, $cookies, $q, $window) {
             return "";
         },
         getUser: function(cb) {
+            if (this.getToken().length == 0) {
+                cb({});
+                return    
+            }
             var that = this;
-			      var scb = function(rsp) {
-				        user = rsp.data;
+			var scb = function(rsp) {
+				user = rsp.data;
                 cb(user);
             };
             if (!user || !user.Id) {
-				        var token = this.getToken();
+				var token = this.getToken();
                 $http({
-					          method: 'GET',
-					          url: url + '/v1/user?token=' + token,
-				        }).then(scb);
+					method: 'GET',
+			        url: url + '/v1/user?token=' + token,
+				}).then(scb);
             } else {
                 cb(user);
             }
@@ -202,6 +206,7 @@ app.controller('SingleController', function(Session, $rootScope, $state, $interv
 	$scope.body = function(bodies) {
         return bodies.join("\n")
 	}
+    $scope.isLoggedIn = Session.getToken().length >= tokenMinLen;
 });
 
 app.controller('EditController', function(Session, $rootScope, $state, $interval, $scope, $http) {

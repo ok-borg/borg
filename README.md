@@ -4,7 +4,8 @@ BORG - A terminal based search engine for bash snippets
 ===
 ![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg) [![Go Report Card](https://goreportcard.com/badge/github.com/crufter/borg)](https://goreportcard.com/report/github.com/crufter/borg)
 
-Borg was built out of the frustration of having to leave the terminal to search for bash snippets.
+Borg was built out of the frustration of having to leave the terminal to search and click around for bash snippets.
+Borg's succint output also makes it easy to glance over multiple snippets quickly.
 
 ### Search
 
@@ -22,63 +23,6 @@ borg "find all txt"
         [a] FILES=$(find public_html -type f -name '*.php')
         [b] FILES=`find public_html -type d`
 ```
-
-### Add
-
-First obtain an oauth token by loggin in with github at [ok-b.org](http://ok-b.org).
-
-```
-borg login my3XamPleT0k3n
-```
-
-You are ready to save your own content
-
-```
-borg new
-```
-
-A vim window opens and lets you save your snippet. For example:
-
-```
-How to grep for a file in current directory
-
-ls | grep mySearchTerm
-```
-
-Save and exit vim.
-
-### Edit
-
-Using our search example, typing `borg edit 1` will present you with an editor window containing:
-
-```
-Find and delete .txt files in bash
- 
-[a]
-find . -name "*.txt" | xargs rm
-
-[b]
-find . -name "*.txt" -exec rm {} \;
-
-[c]
-10 $ find  . -name "*.txt" -type f -delete
-```
-
-Let's say you want to remove the second snippet because your don't like it. Modify it so it becomes:
-
-```
-Find and delete .txt files in bash
- 
-[a]
-find . -name "*.txt" | xargs rm
-
-[c]
-10 $ find  . -name "*.txt" -type f -delete
-```
-
-Save and exit.
-
-(Do not care about the incorrect alphabetical order, it's ok)
 
 ### Install
 
@@ -112,11 +56,11 @@ borg worked 12
 
 Once you do this the result will rank higher for similar queries - it is especially useful if you find a good result that you think are too down in the result list.
 
-### Who can add/edit what?
+### Advanced usage
 
-Any logged in user can edit any content. We trust you with not being a vandal.
+For more commands and their explanations, please see [advanced usage](https://github.com/crufter/borg/tree/master/docs)
 
-### Can borg be mine and only mine?
+### How does borg work?
 
 The client connects to a server at borg.crufter.com, but you can host your own if you want to (see daemon folder).
 
@@ -127,29 +71,6 @@ Self hosting will become less appealing once people start contributing their own
 - `()` denotes hits for your query
 - `[]` denotes snippets found for a given query
 - `...` under a `[]` means more lines to display (use the `-f` flag for full display, see more about usage below)
-
-### Usage
-
-Borg supports gnu flags, so flags are supported both before and after the arguments, so all of the followings are valid:
-
-```
-borg -l 30 -f "md5 Mac"
-borg "md5 Mac" -l30 -f
-borg -f "md5 Mac" -l30
-```
-
-But what do they do?
-
-```
--f  (= false)
-    Print full results, ie. no more '...'
--h (= "borg.crufter.com")
-    Server to connect to
--l  (= 5)
-    Result list limit. Defaults to 5
--p  (= false)
-    Private search. Your search won't leave a trace. Pinky promise. Don't use this all the time if you want to see the search result relevancy improved
-```
 
 ### Credits
 
