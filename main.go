@@ -25,6 +25,8 @@ func main() {
 		err = commands.Worked(flag.Arg(1))
 	case "link":
 		err = commands.Link(flag.Arg(1))
+	case "editor":
+		err = commands.Editor(flag.Arg(1))
 	default:
 		err = commands.Query(flag.Arg(0))
 	}

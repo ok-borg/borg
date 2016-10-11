@@ -50,6 +50,7 @@ func init() {
 type Config struct {
 	Token       string
 	DefaultTags []string
+	Editor      string
 }
 
 // Save config
@@ -67,6 +68,13 @@ func Get() (Config, error) {
 	if err != nil {
 		panic(err)
 	}
-	c := Config{}
-	return c, yaml.Unmarshal(bs, &c)
+	c := &Config{}
+	err = yaml.Unmarshal(bs, c)
+	if err != nil {
+		return *c, err
+	}
+	if len(c.Editor) == 0 {
+		c.Editor = "vim"
+	}
+	return *c, nil
 }

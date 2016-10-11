@@ -27,7 +27,11 @@ func extractPost(s string) (string, string, error) {
 
 // New saves a new snippet into the borg mind
 func New() error {
-	cmd := exec.Command("vim", "-c", "startinsert", conf.HomeDir+"/.borg/edit")
+	c, err := conf.Get()
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(c.Editor, conf.HomeDir+"/.borg/edit")
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Run()

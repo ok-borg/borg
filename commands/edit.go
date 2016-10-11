@@ -57,8 +57,12 @@ func Edit(queryIndex string) error {
 		return err
 	}
 	str := problemToText(s)
+	c, err := conf.Get()
+	if err != nil {
+		return err
+	}
 	ioutil.WriteFile(conf.HomeDir+"/.borg/edit", []byte(str), 0755)
-	cmd := exec.Command("vim", conf.HomeDir+"/.borg/edit")
+	cmd := exec.Command(c.Editor, conf.HomeDir+"/.borg/edit")
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Run()
