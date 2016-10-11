@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/crufter/borg/conf"
+	"github.com/ok-borg/borg/conf"
 	"io/ioutil"
 	"net/http"
 	"strconv"

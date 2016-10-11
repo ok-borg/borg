@@ -2,7 +2,7 @@ package commands
 
 import (
 	"errors"
-	"github.com/crufter/borg/conf"
+	"github.com/ok-borg/borg/conf"
 )
 
 // Login saves a token acquired from the web page into the user config file

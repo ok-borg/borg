@@ -3,7 +3,7 @@ package access
 import (
 	"fmt"
 	log "github.com/cihub/seelog"
-	"github.com/crufter/borg/daemon/endpoints"
+	"github.com/ok-borg/borg/daemon/endpoints"
 	httpr "github.com/julienschmidt/httprouter"
 	"golang.org/x/net/context"
 	"gopkg.in/olivere/elastic.v3"

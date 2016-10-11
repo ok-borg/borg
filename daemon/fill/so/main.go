@@ -9,7 +9,7 @@ import (
 	"strconv"
 	//"strings"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/crufter/borg/types"
+	"github.com/ok-borg/borg/types"
 	"gopkg.in/olivere/elastic.v3"
 	"sort"
 	"strings"

@@ -2,7 +2,7 @@
 
 BORG - A terminal based search engine for bash snippets
 ===
-![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg) [![Go Report Card](https://goreportcard.com/badge/github.com/crufter/borg)](https://goreportcard.com/report/github.com/crufter/borg) [![Slack Status](http://ok-b.org:1492/badge.svg)](http://ok-b.org:1492)
+![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg) [![Go Report Card](https://goreportcard.com/badge/github.com/ok-borg/borg)](https://goreportcard.com/report/github.com/ok-borg/borg) [![Slack Status](http://ok-b.org:1492/badge.svg)](http://ok-b.org:1492)
 
 Borg was built out of the frustration of having to leave the terminal to search and click around for bash snippets.
 Borg's succint output also makes it easy to glance over multiple snippets quickly.
@@ -32,17 +32,17 @@ The following releases only let you search, to use add/edit install from source,
 brew install borg
 ```
 
-For linux, download a release manually [releases](https://github.com/crufter/borg/releases)
+For linux, download a release manually [releases](https://github.com/ok-borg/borg/releases)
 
 ```
-wget https://github.com/crufter/borg/releases/download/v0.0.1/borg_linux_amd64 -O /usr/local/bin/borg
+wget https://github.com/ok-borg/borg/releases/download/v0.0.1/borg_linux_amd64 -O /usr/local/bin/borg
 chmod 755 /usr/local/bin/borg
 ```
 
 Or download a release manually for Mac:
 
 ```
-wget https://github.com/crufter/borg/releases/download/v0.0.1/borg_darwin_amd64 -O /usr/local/bin/borg
+wget https://github.com/ok-borg/borg/releases/download/v0.0.1/borg_darwin_amd64 -O /usr/local/bin/borg
 chmod 755 /usr/local/bin/borg
 ```
 
@@ -58,7 +58,7 @@ Once you do this the result will rank higher for similar queries - it is especia
 
 ### Advanced usage
 
-For more commands and their explanations, please see [advanced usage](https://github.com/crufter/borg/tree/master/docs)
+For more commands and their explanations, please see [advanced usage](https://github.com/ok-borg/borg/tree/master/docs)
 
 ### How does borg work?
 

@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/crufter/borg/types"
+	"github.com/ok-borg/borg/types"
 	"reflect"
 	"testing"
 )

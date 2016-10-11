@@ -7,7 +7,7 @@ import (
 	"time"
 
 	log "github.com/cihub/seelog"
-	"github.com/crufter/borg/types"
+	"github.com/ok-borg/borg/types"
 	"github.com/ventu-io/go-shortid"
 )
 

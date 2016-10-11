@@ -3,7 +3,7 @@ package sitemap
 import (
 	"fmt"
 	log "github.com/cihub/seelog"
-	"github.com/crufter/borg/types"
+	"github.com/ok-borg/borg/types"
 	"github.com/crufter/slugify"
 	"github.com/joeguo/sitemap"
 	"gopkg.in/olivere/elastic.v3"

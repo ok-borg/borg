@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/crufter/borg/commands"
+	"github.com/ok-borg/borg/commands"
 	flag "github.com/juju/gnuflag"
 	"os"
 )
