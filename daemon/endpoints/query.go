@@ -2,8 +2,8 @@ package endpoints
 
 import (
 	log "github.com/cihub/seelog"
-	"github.com/ok-borg/borg/types"
 	"github.com/jpillora/go-ogle-analytics"
+	"github.com/ok-borg/borg/types"
 	"gopkg.in/olivere/elastic.v3"
 	"reflect"
 )

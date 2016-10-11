@@ -8,7 +8,7 @@ import (
 
 func TestTextToProblem(t *testing.T) {
 	ps := []types.Problem{
-		types.Problem{
+		{
 			Title: "title title",
 			Solutions: []types.Solution{
 				{
@@ -18,7 +18,7 @@ func TestTextToProblem(t *testing.T) {
 				},
 			},
 		},
-		types.Problem{
+		{
 			Title: "asdsadasd",
 			Solutions: []types.Solution{
 				{
