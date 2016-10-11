@@ -76,7 +76,7 @@ But what do they do?
 ```
 -f  (= false)
     Print full results, ie. no more '...'
--h (= "borg.crufter.com")
+-h (= "ok-b.org")
     Server to connect to
 -l  (= 5)
     Result list limit. Defaults to 5

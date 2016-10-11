@@ -2,7 +2,7 @@
 
 BORG - A terminal based search engine for bash snippets
 ===
-![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/crufter/borg.svg?branch=master)](https://travis-ci.org/crufter/borg) [![Go Report Card](https://goreportcard.com/badge/github.com/ok-borg/borg)](https://goreportcard.com/report/github.com/ok-borg/borg) [![Slack Status](http://ok-b.org:1492/badge.svg)](http://ok-b.org:1492)
+![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/ok-borg/borg.svg?branch=master)](https://travis-ci.org/ok-borg/borg) [![Go Report Card](https://goreportcard.com/badge/github.com/ok-borg/borg)](https://goreportcard.com/report/github.com/ok-borg/borg) [![Slack Status](http://ok-b.org:1492/badge.svg)](http://ok-b.org:1492)
 
 Borg was built out of the frustration of having to leave the terminal to search and click around for bash snippets.
 Borg's succint output also makes it easy to glance over multiple snippets quickly.
@@ -62,7 +62,7 @@ For more commands and their explanations, please see [advanced usage](https://gi
 
 ### How does borg work?
 
-The client connects to a server at borg.crufter.com, but you can host your own if you want to (see daemon folder).
+The client connects to a server at ok-b.org, but you can host your own if you want to (see daemon folder).
 
 Self hosting will become less appealing once people start contributing their own content to the database though.
 

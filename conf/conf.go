@@ -16,7 +16,7 @@ var (
 	L = flag.Int("l", 5, "Result list limit. Defaults to 5")
 
 	// H flag specifies the host to connect to
-	H = flag.String("h", "borg.crufter.com", "Server to connect to")
+	H = flag.String("h", "ok-b.org", "Server to connect to")
 
 	// P flag enables private search
 	P = flag.Bool("p", false, "Private search. Your search won't leave a trace. Pinky promise. Don't use this all the time if you want to see the search result relevancy improved")
