@@ -11,12 +11,12 @@ import (
 	"time"
 
 	log "github.com/cihub/seelog"
+	"github.com/crufter/borg/daemon/access"
+	"github.com/crufter/borg/daemon/endpoints"
+	"github.com/crufter/borg/daemon/sitemap"
+	"github.com/crufter/borg/types"
 	"github.com/jpillora/go-ogle-analytics"
 	httpr "github.com/julienschmidt/httprouter"
-	"github.com/ok-borg/borg/daemon/access"
-	"github.com/ok-borg/borg/daemon/endpoints"
-	"github.com/ok-borg/borg/daemon/sitemap"
-	"github.com/ok-borg/borg/types"
 	"github.com/rs/cors"
 	"golang.org/x/oauth2"
 	"gopkg.in/olivere/elastic.v3"
@@ -32,6 +32,8 @@ var (
 	githubClientSecret = flag.String("github-client-secret", "", "Github client secret")
 	sm                 = flag.String("sitemap", "", "Sitemap location. Leave empty if you don't want a sitemap to be generated")
 	analytics          = flag.String("analytics", "", "Analytics tracking id")
+	certFile           = flag.String("certfile", "", "SSL cert file")
+	keyFile            = flag.String("keyfile", "", "SSL key file")
 )
 
 var (
@@ -94,6 +96,12 @@ func main() {
 
 	handler := cors.New(cors.Options{AllowedHeaders: []string{"*"}, AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"}}).Handler(r)
 	log.Info("Starting http server")
+	if len(*certFile) > 0 {
+		go func() {
+			log.Info("Starting httpS server")
+			log.Critical(http.ListenAndServeTLS(fmt.Sprintf(":%v", 9993), *certFile, *keyFile, handler))
+		}()
+	}
 	log.Critical(http.ListenAndServe(fmt.Sprintf(":%v", 9992), handler))
 }
 

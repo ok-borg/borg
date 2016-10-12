@@ -1,6 +1,6 @@
 var app = angular.module('app', ['ngCookies', 'ui.router']);
 
-const url = "http://ok-b.org:9992"
+const url = window.location.protocol.includes("https") ? "https://ok-b.org:9993" : "http://ok-b.org:9992"
 const tokenMinLen = 10
 
 app.directive('a', function() {
