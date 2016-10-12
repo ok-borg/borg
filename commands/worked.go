@@ -5,15 +5,25 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ok-borg/borg/conf"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/ok-borg/borg/conf"
 )
 
+func init() {
+	var summary string = "Worked summary"
+	Commands["worked"] = Command{
+		F:       Worked,
+		Summary: summary,
+	}
+}
+
 // Worked lets you mark a result as relevant one for a query
-func Worked(queryIndex string) error {
+func Worked(args []string) error {
+	queryIndex := args[1]
 	i, err := strconv.ParseInt(queryIndex, 10, 32)
 	if err != nil {
 		return err

@@ -5,15 +5,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ok-borg/borg/conf"
-	"github.com/ok-borg/borg/types"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/ok-borg/borg/conf"
+	"github.com/ok-borg/borg/types"
 )
+
+func init() {
+	var summary string = "Save summary"
+	Commands["new"] = Command{
+		F:       New,
+		Summary: summary,
+	}
+}
 
 func extractPost(s string) (string, string, error) {
 	ss := strings.Split(s, "\n")
@@ -26,7 +35,7 @@ func extractPost(s string) (string, string, error) {
 }
 
 // New saves a new snippet into the borg mind
-func New() error {
+func New([]string) error {
 	c, err := conf.Get()
 	if err != nil {
 		return err

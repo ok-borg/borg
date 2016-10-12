@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ok-borg/borg/conf"
-	"github.com/ok-borg/borg/types"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -16,7 +14,18 @@ import (
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/ok-borg/borg/conf"
+	"github.com/ok-borg/borg/types"
 )
+
+func init() {
+	var summary string = "Edit summary"
+	Commands["edit"] = Command{
+		F:       Edit,
+		Summary: summary,
+	}
+}
 
 func findIdFromQueryIndex(queryIndex int) (string, error) {
 	bs, err := ioutil.ReadFile(conf.HomeDir + "/.borg/query")
@@ -43,7 +52,8 @@ func findIdFromQueryIndex(queryIndex int) (string, error) {
 }
 
 // Edit a snippet based on index from last query results
-func Edit(queryIndex string) error {
+func Edit(args []string) error {
+	queryIndex := args[1]
 	i, err := strconv.ParseInt(queryIndex, 10, 32)
 	if err != nil {
 		return err
