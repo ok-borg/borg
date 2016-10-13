@@ -5,8 +5,17 @@ import (
 	"strconv"
 )
 
+func init() {
+	var summary string = "Link summary"
+	Commands["link"] = Command{
+		F:       Link,
+		Summary: summary,
+	}
+}
+
 // Link prints the url to a query result
-func Link(queryIndex string) error {
+func Link(args []string) error {
+	queryIndex := args[1]
 	i, err := strconv.ParseInt(queryIndex, 10, 32)
 	if err != nil {
 		return err
