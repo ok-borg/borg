@@ -4,16 +4,20 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"golang.org/x/net/context"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
 
+	"golang.org/x/net/context"
+
 	log "github.com/cihub/seelog"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/jpillora/go-ogle-analytics"
 	httpr "github.com/julienschmidt/httprouter"
 	"github.com/ok-borg/borg/daemon/access"
+	"github.com/ok-borg/borg/daemon/domain"
 	"github.com/ok-borg/borg/daemon/endpoints"
 	"github.com/ok-borg/borg/daemon/sitemap"
 	"github.com/ok-borg/borg/types"
@@ -34,12 +38,14 @@ var (
 	analytics          = flag.String("analytics", "", "Analytics tracking id")
 	certFile           = flag.String("certfile", "", "SSL cert file")
 	keyFile            = flag.String("keyfile", "", "SSL key file")
+	sqlAddr            = flag.String("sqladdr", "127.0.0.1:3306", "Mysql address")
 )
 
 var (
 	client          *elastic.Client
 	analyticsClient *ga.Client
 	ep              *endpoints.Endpoints
+	db              *gorm.DB
 )
 
 type Logger struct{}
@@ -79,6 +85,16 @@ func main() {
 		go sitemapLoop(*sm, client)
 	}
 
+	// init mysql
+	var err error
+	dsn := fmt.Sprintf("root:root@tcp(%s)/borg?parseTime=True", *sqlAddr)
+	if db, err = gorm.Open("mysql", dsn); err != nil {
+		panic(fmt.Sprintf("[init] unable to initialize gorm: %s", err.Error()))
+	}
+	defer db.Close()
+
+	// decl routes
+
 	r.GET("/v1/redirect/github/authorize", redirectGithubAuthorize)
 	r.GET("/v1/query", q)
 	r.POST("/v1/auth/github", githubAuth)
@@ -93,6 +109,9 @@ func main() {
 	//r.DELETE("/v1/p/:id", access.IfAuth(deleteSnippet))
 	r.PUT("/v1/p", access.IfAuth(client, access.Control(updateSnippet, access.Update)))
 	r.POST("/v1/worked", access.IfAuth(client, snippetWorked))
+
+	// organizations
+	r.POST("/v1/organizations", access.IfAuth(client, createOrganization))
 
 	handler := cors.New(cors.Options{AllowedHeaders: []string{"*"}, AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"}}).Handler(r)
 	log.Info("Starting http server")
@@ -281,4 +300,40 @@ func getSnippet(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	}
 	bs, _ := json.Marshal(snipp)
 	writeResponse(w, http.StatusOK, string(bs))
+}
+
+func createOrganization(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	p httpr.Params) {
+
+	// first unmarshal body
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to read body")
+		return
+	}
+	expectedBody := struct{ Name string }{}
+	if err := json.Unmarshal(body, &expectedBody); err != nil {
+		log.Errorf(
+			"[createOrganization] invalid createOrganization request, %s, input was %s",
+			err.Error(), string(body))
+		writeResponse(w, http.StatusBadRequest, "borg-api: invalid body")
+		return
+	}
+
+	// get user in elastic
+	u, _ := ep.GetUser(ctx.Value("token").(string))
+	// get or create it in mysql
+	userDao := domain.NewUserDao(db)
+	if u, err := userDao.GetOrCreateFromRaw(u.Login, u.Email, u.Id); err != nil {
+		// handle shit here
+	} else {
+		// lets create an org
+		if err := ep.CreateOrganization(db, u.Id, expectedBody.Name); err != nil {
+			writeResponse(w, http.StatusInternalServerError, "borg-api: create organization error: "+err.Error())
+			return
+		}
+	}
 }
