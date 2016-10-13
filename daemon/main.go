@@ -113,6 +113,19 @@ func main() {
 	// organizations
 	r.POST("/v1/organizations", access.IfAuth(client, createOrganization))
 
+	// organizations-join-links
+	// this is only allowed for the organization admin
+	r.POST("/v1/organization-join-links", access.IfAuth(client, createOrganizationJoinLink))
+	r.DELETE("/v1/organization-join-links/id/:id", access.IfAuth(client, deleteOrganizationJoinLink))
+	// get a join link for a specific organization
+	// this is allowed only by the organization admin in order to share it again, or delete it.
+	r.GET("/v1/organization-join-links/organizations/:id",
+		access.IfAuth(client, getOrganizationJoinLinkByOrganizationId))
+	r.GET("/v1/organization-join-links/id/:id", access.IfAuth(client, getOrganizationJoinLink))
+	// accept join link
+	// not restful at all, but pretty to read
+	r.POST("/v1/join/:id", access.IfAuth(client, joinOrganization))
+
 	handler := cors.New(cors.Options{AllowedHeaders: []string{"*"}, AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"}}).Handler(r)
 	log.Info("Starting http server")
 	if len(*certFile) > 0 {
@@ -331,9 +344,124 @@ func createOrganization(
 		// handle shit here
 	} else {
 		// lets create an org
-		if err := ep.CreateOrganization(db, u.Id, expectedBody.Name); err != nil {
+		if o, err := ep.CreateOrganization(db, u.Id, expectedBody.Name); err != nil {
 			writeResponse(w, http.StatusInternalServerError, "borg-api: create organization error: "+err.Error())
 			return
+		} else {
+			writeJsonResponse(w, http.StatusOK, o)
 		}
 	}
+}
+
+// create a new organization join link.
+// only an administrator of an organization can execute this action
+func createOrganizationJoinLink(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	p httpr.Params) {
+
+	// first unmarshal body
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to read body")
+		return
+	}
+	expectedBody := struct {
+		OrganizationId string
+		Ttl            int64
+	}{}
+	if err := json.Unmarshal(body, &expectedBody); err != nil {
+		log.Errorf(
+			"[createOrganizationJoinLink] invalid createOrganizationJoinlink request, %s, input was %s",
+			err.Error(), string(body))
+		writeResponse(w, http.StatusBadRequest, "borg-api: invalid body")
+		return
+	}
+
+	// check mandatory fields
+	if expectedBody.OrganizationId == "" || expectedBody.Ttl <= 0 {
+		log.Errorf(
+			"[createOrganizationJoinLink] invalid createOrganizationjoinlink body")
+		writeResponse(w, http.StatusBadRequest, "borg-api: invalid body")
+		return
+	}
+
+	// get user in elastic
+	u, _ := ep.GetUser(ctx.Value("token").(string))
+	// get or create it in mysql
+	userDao := domain.NewUserDao(db)
+
+	if u, err := userDao.GetOrCreateFromRaw(u.Login, u.Email, u.Id); err != nil {
+		// handle shit here
+	} else {
+		// ceate the organizartion Join Link
+		if o, err := ep.CreateOrganizationJoinLink(db, u.Id, expectedBody.OrganizationId, expectedBody.Ttl); err != nil {
+			writeResponse(w, http.StatusInternalServerError,
+				"borg-api: create organization join link error: "+err.Error())
+			return
+		} else {
+			writeJsonResponse(w, http.StatusOK, o)
+		}
+
+	}
+}
+
+// delete an existing link
+// same as previously
+func deleteOrganizationJoinLink(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	p httpr.Params) {
+	id := p.ByName("id")
+	if len(id) == 0 {
+		writeResponse(w, http.StatusBadRequest, "borg-api: Missing id url parameter")
+		return
+	}
+
+	// get user in elastic
+	u, _ := ep.GetUser(ctx.Value("token").(string))
+	// get or create it in mysql
+	userDao := domain.NewUserDao(db)
+
+	if u, err := userDao.GetOrCreateFromRaw(u.Login, u.Email, u.Id); err != nil {
+		// handle shit here
+	} else {
+		// ceate the organizartion Join Link
+		if err := ep.DeleteOrganizationJoinLink(db, u.Id, id); err != nil {
+			writeResponse(w, http.StatusInternalServerError,
+				"borg-api: delete organization join link error: "+err.Error())
+			return
+		}
+		writeResponse(w, http.StatusOK, "")
+	}
+}
+
+// by id
+// get an existing link in order to consult the time left for the
+// join link, or delete it, or get the the organizastion link for invited
+// users to display orgs infos
+func getOrganizationJoinLink(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	p httpr.Params) {
+}
+
+// get join link for a given organization
+// will work only for an admin in order to manage this join-link
+func getOrganizationJoinLinkByOrganizationId(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	p httpr.Params) {
+}
+
+// join an organization.
+func joinOrganization(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	p httpr.Params) {
 }

@@ -11,13 +11,17 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-func (e Endpoints) CreateOrganization(db *gorm.DB, userId string, name string) error {
+func (e Endpoints) CreateOrganization(
+	db *gorm.DB,
+	userId string,
+	name string,
+) (*domain.Organization, error) {
 	organizationDao := domain.NewOrganizationDao(db)
 	// first check if organization with same name exists
 	if _, err := organizationDao.GetByName(name); err == nil {
 		// no error, we sucessfully get an organization,
 		// return an error
-		return errors.New(fmt.Sprintf("An organization with the name %s already exists", name))
+		return nil, errors.New(fmt.Sprintf("An organization with the name %s already exists", name))
 	}
 
 	// first create organization
@@ -35,7 +39,7 @@ func (e Endpoints) CreateOrganization(db *gorm.DB, userId string, name string) e
 
 	if err := organizationDao.Create(newOrganization); err != nil {
 		log.Errorf("[Endpoints.CreateOrganization] unable to create organization: %s", err.Error())
-		return err
+		return nil, err
 	}
 
 	// then create association between organization and the creator user
@@ -52,8 +56,82 @@ func (e Endpoints) CreateOrganization(db *gorm.DB, userId string, name string) e
 
 	if err := userOrganizationDao.Create(newUserOrganization); err != nil {
 		log.Errorf("[Endpoints.CreateOrganization] unable to associate user to newly create organization: %s", err.Error())
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &newOrganization, nil
+}
+
+func (e Endpoints) CreateOrganizationJoinLink(
+	db *gorm.DB,
+	userId string,
+	organizationId string,
+	ttl int64,
+) (*domain.OrganizationJoinLink, error) {
+	// first check if the user is really the organization admin.
+	organizationDao := domain.NewOrganizationDao(db)
+	organization, err := organizationDao.GetById(organizationId)
+
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("organization %s do not exists", organizationId))
+	}
+	if organization.UserAdminId != userId {
+		return nil, errors.New(fmt.Sprintf(
+			"user (id=%s) is not administrator of organization (id=%s)",
+			userId, organizationId))
+	}
+
+	// ok so here the organization exists, the user is the admin
+	// lets check if a join-link already exist, if yes remove it then create a new one hehe.
+	organizationJoinLinkDao := domain.NewOrganizationJoinLinkDao(db)
+	if ojl, err := organizationJoinLinkDao.GetByOrganizationId(organizationId); err == nil {
+		// no error this join link exist for this organization
+		// lets remove it
+		organizationJoinLinkDao.Delete(ojl.Id)
+	}
+	// now create a new one
+	ojl := domain.OrganizationJoinLink{
+		Id:             uuid.NewV4().String(),
+		OrganizationId: organizationId,
+		Ttl:            ttl,
+		CreatedAt:      time.Now(),
+		CreatedBy:      userId,
+	}
+
+	if err := organizationJoinLinkDao.Create(ojl); err != nil {
+		log.Errorf("[Endpoints.CreateOrganizationjoinlink] unable to create organiation join link for organization: %s, %s", organizationId, err.Error())
+		return nil, err
+	}
+	return &ojl, nil
+}
+
+func (e Endpoints) DeleteOrganizationJoinLink(
+	db *gorm.DB,
+	userId string,
+	organizationJoinLinkId string,
+) error {
+	// get the organizastionJoinLink
+	organizationJoinLinkDao := domain.NewOrganizationJoinLinkDao(db)
+	ojl, err := organizationJoinLinkDao.GetById(organizationJoinLinkId)
+	if err != nil {
+		return errors.New(fmt.Sprintf("cannot fin organization join link (id=%s)",
+			organizationJoinLinkId))
+	}
+
+	// then check if the user is really the organization admin.
+	organizationDao := domain.NewOrganizationDao(db)
+	organization, err := organizationDao.GetById(ojl.OrganizationId)
+
+	if err != nil {
+		return errors.New(fmt.Sprintf("organization %s do not exists", ojl.OrganizationId))
+	}
+	if organization.UserAdminId != userId {
+		return errors.New(fmt.Sprintf(
+			"user (id=%s) is not administrator of organization (id=%s)",
+			userId, ojl.OrganizationId))
+	}
+
+	// ok so here the organization exists, the user is the admin
+	// DELETE ALL THE SHIT
+	return organizationJoinLinkDao.Delete(organizationJoinLinkId)
 }

@@ -30,3 +30,18 @@ type UserOrganization struct {
 	CreatedBy      string
 	UpdatedBy      string
 }
+
+type OrganizationJoinLink struct {
+	Id             string
+	OrganizationId string
+	Ttl            int64
+	CreatedAt      time.Time
+	CreatedBy      string
+}
+
+func (o OrganizationJoinLink) IsExpired() bool {
+	if o.CreatedAt.Unix()+o.Ttl < time.Now().Unix() {
+		return true
+	}
+	return false
+}
