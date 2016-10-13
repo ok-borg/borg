@@ -35,7 +35,7 @@ func GenerateSitemap(sitemapPath string, client *elastic.Client) {
 	items := []*sitemap.Item{}
 	for _, v := range all {
 		item := &sitemap.Item{
-			Loc:        "http://ok-b.org/t/" + fmt.Sprintf("%v/%v", v.Id, slugify.S(v.Title)),
+			Loc:        "https://ok-b.org/t/" + fmt.Sprintf("%v/%v", v.Id, slugify.S(v.Title)),
 			LastMod:    time.Now(),
 			Priority:   0.5,
 			Changefreq: "daily",
