@@ -24,6 +24,6 @@ func Link(args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(fmt.Sprintf("http://ok-b.org/t/%v/x", id))
+	fmt.Println(fmt.Sprintf("https://ok-b.org/t/%v/x", id))
 	return nil
 }

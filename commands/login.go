@@ -18,7 +18,7 @@ func init() {
 func Login(args []string) error {
 	token := args[1]
 	if len(token) == 0 {
-		return errors.New("Please supply a token. Don't have one? Go to http://ok-b.org and get it")
+		return errors.New("Please supply a token. Don't have one? Go to https://ok-b.org and get it")
 	}
 	conf, err := conf.Get()
 	if err != nil {

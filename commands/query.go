@@ -102,7 +102,7 @@ func writeToFile(query string, ps []types.Problem) error {
 }
 
 func host() string {
-	return fmt.Sprintf("http://%v:9992", *conf.H)
+	return fmt.Sprintf("http://%v:9992", *conf.S)
 }
 
 func toChar(i int) string {
