@@ -52,7 +52,7 @@ func (ud *UserOrganizationDao) ListUsersInOrganization(organization_id string) (
 // return list of user ids
 func (ud *UserOrganizationDao) ListOrganizationsForUser(user_id string) ([]string, error) {
 	uos := []UserOrganization{}
-	err := ud.db.Where("user_organizations.organization_id = ?", user_id).
+	err := ud.db.Where("user_organizations.user_id = ?", user_id).
 		Find(&uos).Error
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
@@ -76,4 +76,8 @@ func (ud *UserOrganizationDao) Create(u UserOrganization) error {
 
 func (ud *UserOrganizationDao) Update(u UserOrganization) error {
 	return ud.db.Save(&u).Error
+}
+
+func (ud *UserOrganizationDao) Delete(id string) error {
+	return ud.db.Delete(&UserOrganization{Id: id}).Error
 }

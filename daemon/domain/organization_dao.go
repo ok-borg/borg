@@ -16,6 +16,13 @@ func (od *OrganizationDao) GetById(id string) (Organization, error) {
 	return u, err
 }
 
+func (od *OrganizationDao) GetByIds(ids []string) ([]Organization, error) {
+	u := []Organization{}
+	err := od.db.Where("organizations.id in (?)", ids).
+		Find(&u).Error
+	return u, err
+}
+
 func (od *OrganizationDao) GetByName(name string) (Organization, error) {
 	u := Organization{}
 	err := od.db.Where("organizations.name = ?", name).

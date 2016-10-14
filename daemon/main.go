@@ -40,6 +40,7 @@ var (
 	certFile           = flag.String("certfile", "", "SSL cert file")
 	keyFile            = flag.String("keyfile", "", "SSL key file")
 	sqlAddr            = flag.String("sqladdr", "127.0.0.1:3306", "Mysql address")
+	sqlIds             = flag.String("sqlids", "root:root", "Mysql identifier")
 )
 
 var (
@@ -113,6 +114,11 @@ func main() {
 
 	// organizations
 	r.POST("/v1/organizations", access.IfAuth(client, createOrganization))
+	r.GET("/v1/organizations", access.IfAuth(client, listUserOrganizations))
+
+	// not rest at all but who cares ?
+	r.POST("/v1/organizations/leave/:id", access.IfAuth(client, leaveOrganization))
+	r.POST("/v1/organizations/expel/:oid/user/id/:uid", access.IfAuth(client, expelUserFromOrganization))
 
 	// organizations-join-links
 	// this is only allowed for the organization admin
@@ -498,6 +504,103 @@ func joinOrganization(
 	if len(id) == 0 {
 		writeResponse(w, http.StatusBadRequest, "borg-api: Missing id url parameter")
 		return
+	}
+
+	if u, err := getUserByAccessToken(ctx); err != nil {
+		// handle shit here
+	} else {
+		// ceate the organizartion Join Link
+		if err := ep.JoinOrganization(db, u.Id, id); err != nil {
+			writeResponse(w, http.StatusInternalServerError,
+				"borg-api: cannot join organization: "+err.Error())
+			return
+		} else {
+			writeJsonResponse(w, http.StatusOK, "")
+		}
+	}
+}
+
+// list user organization
+func listUserOrganizations(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	p httpr.Params) {
+	if u, err := getUserByAccessToken(ctx); err != nil {
+		// handle shit here
+	} else {
+		// ceate the organizartion Join Link
+		if orgz, err := ep.ListUserOrganizations(db, u.Id); err != nil {
+			writeResponse(w, http.StatusInternalServerError,
+				"borg-api: list user organizations error: "+err.Error())
+			return
+		} else {
+			writeJsonResponse(w, http.StatusOK, orgz)
+		}
+	}
+
+}
+
+// leave an organization,
+// you cannot leave an organization if you are the only admin for it
+func leaveOrganization(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	p httpr.Params,
+) {
+	organizationId := p.ByName("id")
+	if len(organizationId) == 0 {
+		writeResponse(w, http.StatusBadRequest, "borg-api: Missing id url parameter")
+		return
+	}
+
+	if u, err := getUserByAccessToken(ctx); err != nil {
+		// handle shit here
+	} else {
+		// ceate the organizartion Join Link
+		if err := ep.LeaveOrganization(db, u.Id, organizationId); err != nil {
+			writeResponse(w, http.StatusInternalServerError,
+				"borg-api: cannot leave organization: "+err.Error())
+			return
+		} else {
+			writeJsonResponse(w, http.StatusNoContent, "")
+		}
+	}
+
+}
+
+// expel an user from an organization,
+// you can only do this if you are admin of the organization from
+// where you want to expel someone
+func expelUserFromOrganization(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	p httpr.Params,
+) {
+	organizationId := p.ByName("oid")
+	if len(organizationId) == 0 {
+		writeResponse(w, http.StatusBadRequest, "borg-api: Missing organizationId url parameter")
+		return
+	}
+	userId := p.ByName("uid")
+	if len(userId) == 0 {
+		writeResponse(w, http.StatusBadRequest, "borg-api: Missing userId url parameter")
+		return
+	}
+
+	if u, err := getUserByAccessToken(ctx); err != nil {
+		// handle shit here
+	} else {
+		// ceate the organizartion Join Link
+		if err := ep.ExpelUserFromOrganization(db, u.Id, userId, organizationId); err != nil {
+			writeResponse(w, http.StatusInternalServerError,
+				"borg-api: cannot expel from organization: "+err.Error())
+			return
+		} else {
+			writeJsonResponse(w, http.StatusNoContent, "")
+		}
 	}
 
 }
