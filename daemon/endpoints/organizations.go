@@ -135,3 +135,35 @@ func (e Endpoints) DeleteOrganizationJoinLink(
 	// DELETE ALL THE SHIT
 	return organizationJoinLinkDao.Delete(organizationJoinLinkId)
 }
+
+func (e Endpoints) GetOrganizationJoinLink(
+	db *gorm.DB,
+	organizationJoinLinkId string,
+) (domain.OrganizationJoinLink, error) {
+	organizationJoinLinkDao := domain.NewOrganizationJoinLinkDao(db)
+	return organizationJoinLinkDao.GetById(organizationJoinLinkId)
+}
+
+func (e Endpoints) GetOrganizationJoinLinkForOrganization(
+	db *gorm.DB,
+	userId string,
+	organizationId string,
+) (*domain.OrganizationJoinLink, error) {
+	organizationJoinLinkDao := domain.NewOrganizationJoinLinkDao(db)
+	organizationJoinLink, err := organizationJoinLinkDao.GetByOrganizationId(organizationId)
+
+	if err != nil {
+		log.Errorf("[Endpoints.GetOrganizationjoinlinkbyorganizationid] cannot get join link from organization: %s", err)
+		return nil, err
+	}
+
+	// the organizationJoinLink exists
+	// check if the user that makes the request is admin
+	organization, _ := domain.NewOrganizationDao(db).GetById(organizationId)
+
+	if organization.UserAdminId != userId {
+		return nil, errors.New("only admin users can explicitly get organizastionjoinlink")
+	}
+
+	return &organizationJoinLink, err
+}

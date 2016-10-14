@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -121,6 +122,7 @@ func main() {
 	// this is allowed only by the organization admin in order to share it again, or delete it.
 	r.GET("/v1/organization-join-links/organizations/:id",
 		access.IfAuth(client, getOrganizationJoinLinkByOrganizationId))
+	// get a join link from a join-link id.
 	r.GET("/v1/organization-join-links/id/:id", access.IfAuth(client, getOrganizationJoinLink))
 	// accept join link
 	// not restful at all, but pretty to read
@@ -315,6 +317,28 @@ func getSnippet(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	writeResponse(w, http.StatusOK, string(bs))
 }
 
+func readJsonBody(r *http.Request, expectedBody interface{}) error {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return errors.New("unable to read body")
+	}
+	if err := json.Unmarshal(body, expectedBody); err != nil {
+		log.Errorf(
+			"[readJsonBody] invalid request, %s, input was %s",
+			err.Error(), string(body))
+		return errors.New("invalid json body format")
+	}
+	return nil
+}
+
+func getUserByAccessToken(ctx context.Context) (domain.User, error) {
+	// get user in elastic
+	u, _ := ep.GetUser(ctx.Value("token").(string))
+	// get or create it in mysql
+	userDao := domain.NewUserDao(db)
+	return userDao.GetOrCreateFromRaw(u.Login, u.Email, u.Id)
+}
+
 func createOrganization(
 	ctx context.Context,
 	w http.ResponseWriter,
@@ -322,25 +346,14 @@ func createOrganization(
 	p httpr.Params) {
 
 	// first unmarshal body
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to read body")
-		return
-	}
 	expectedBody := struct{ Name string }{}
-	if err := json.Unmarshal(body, &expectedBody); err != nil {
-		log.Errorf(
-			"[createOrganization] invalid createOrganization request, %s, input was %s",
-			err.Error(), string(body))
-		writeResponse(w, http.StatusBadRequest, "borg-api: invalid body")
+	if err := readJsonBody(r, &expectedBody); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			fmt.Sprintf("borg-api: %s", err.Error()))
 		return
 	}
 
-	// get user in elastic
-	u, _ := ep.GetUser(ctx.Value("token").(string))
-	// get or create it in mysql
-	userDao := domain.NewUserDao(db)
-	if u, err := userDao.GetOrCreateFromRaw(u.Login, u.Email, u.Id); err != nil {
+	if u, err := getUserByAccessToken(ctx); err != nil {
 		// handle shit here
 	} else {
 		// lets create an org
@@ -362,20 +375,13 @@ func createOrganizationJoinLink(
 	p httpr.Params) {
 
 	// first unmarshal body
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		writeResponse(w, http.StatusInternalServerError, "borg-api: unable to read body")
-		return
-	}
 	expectedBody := struct {
 		OrganizationId string
 		Ttl            int64
 	}{}
-	if err := json.Unmarshal(body, &expectedBody); err != nil {
-		log.Errorf(
-			"[createOrganizationJoinLink] invalid createOrganizationJoinlink request, %s, input was %s",
-			err.Error(), string(body))
-		writeResponse(w, http.StatusBadRequest, "borg-api: invalid body")
+	if err := readJsonBody(r, &expectedBody); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			fmt.Sprintf("borg-api: %s", err.Error()))
 		return
 	}
 
@@ -387,12 +393,7 @@ func createOrganizationJoinLink(
 		return
 	}
 
-	// get user in elastic
-	u, _ := ep.GetUser(ctx.Value("token").(string))
-	// get or create it in mysql
-	userDao := domain.NewUserDao(db)
-
-	if u, err := userDao.GetOrCreateFromRaw(u.Login, u.Email, u.Id); err != nil {
+	if u, err := getUserByAccessToken(ctx); err != nil {
 		// handle shit here
 	} else {
 		// ceate the organizartion Join Link
@@ -420,15 +421,10 @@ func deleteOrganizationJoinLink(
 		return
 	}
 
-	// get user in elastic
-	u, _ := ep.GetUser(ctx.Value("token").(string))
-	// get or create it in mysql
-	userDao := domain.NewUserDao(db)
-
-	if u, err := userDao.GetOrCreateFromRaw(u.Login, u.Email, u.Id); err != nil {
+	if u, err := getUserByAccessToken(ctx); err != nil {
 		// handle shit here
 	} else {
-		// ceate the organizartion Join Link
+		// delete the organizartion Join Link
 		if err := ep.DeleteOrganizationJoinLink(db, u.Id, id); err != nil {
 			writeResponse(w, http.StatusInternalServerError,
 				"borg-api: delete organization join link error: "+err.Error())
@@ -447,6 +443,21 @@ func getOrganizationJoinLink(
 	w http.ResponseWriter,
 	r *http.Request,
 	p httpr.Params) {
+	id := p.ByName("id")
+	if len(id) == 0 {
+		writeResponse(w, http.StatusBadRequest, "borg-api: Missing id url parameter")
+		return
+	}
+
+	// get the organization join link
+	// no need of user id or anythin
+	if ojl, err := ep.GetOrganizationJoinLink(db, id); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			"borg-api: get organization join link error: "+err.Error())
+		return
+	} else {
+		writeJsonResponse(w, http.StatusOK, ojl)
+	}
 }
 
 // get join link for a given organization
@@ -456,12 +467,37 @@ func getOrganizationJoinLinkByOrganizationId(
 	w http.ResponseWriter,
 	r *http.Request,
 	p httpr.Params) {
+	id := p.ByName("id")
+	if len(id) == 0 {
+		writeResponse(w, http.StatusBadRequest, "borg-api: Missing id url parameter")
+		return
+	}
+
+	if u, err := getUserByAccessToken(ctx); err != nil {
+		// handle shit here
+	} else {
+		// ceate the organizartion Join Link
+		if ojl, err := ep.GetOrganizationJoinLinkForOrganization(db, u.Id, id); err != nil {
+			writeResponse(w, http.StatusInternalServerError,
+				"borg-api: get organization join link error: "+err.Error())
+			return
+		} else {
+			writeJsonResponse(w, http.StatusOK, ojl)
+		}
+	}
 }
 
 // join an organization.
+// if join link is not expired.
 func joinOrganization(
 	ctx context.Context,
 	w http.ResponseWriter,
 	r *http.Request,
 	p httpr.Params) {
+	id := p.ByName("id")
+	if len(id) == 0 {
+		writeResponse(w, http.StatusBadRequest, "borg-api: Missing id url parameter")
+		return
+	}
+
 }
