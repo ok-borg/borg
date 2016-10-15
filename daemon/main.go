@@ -89,7 +89,7 @@ func main() {
 
 	// init mysql
 	var err error
-	dsn := fmt.Sprintf("root:root@tcp(%s)/borg?parseTime=True", *sqlAddr)
+	dsn := fmt.Sprintf("%s@tcp(%s)/borg?parseTime=True", *sqlIds, *sqlAddr)
 	if db, err = gorm.Open("mysql", dsn); err != nil {
 		panic(fmt.Sprintf("[init] unable to initialize gorm: %s", err.Error()))
 	}
