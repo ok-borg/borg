@@ -8,43 +8,56 @@
     	    	<input ng-model="query" ng-keydown="keyd()" type="text" autofocus />
 			</form>
 		</div>
+        
+        <div class="row top-buffer">
+            
+            <div class="col-xs-1">
+                <a href="/#/latest">
+                    Latest
+                </a>
+            </div>
+
+            <div class="col-xs-1">
+                <a href="https://github.com/ok-borg/borg">
+                    Source
+                </a>
+            </div>
+
+            <div class="col-xs-1">
+                <a href="https://twitter.com/ok_borg">
+                    Follow
+                </a>
+            </div>
+
+            <div class="col-xs-1">
+                <a target="_blank" href="https://twitter.com/home/?status=Since%20I%20use%20Borg%2C%20I%20am%20a%20slightly%20less%20grumpy%20bash%20user!%20Check%20it%20out%3A%20http%3A%2F%2Fok-b.org%20via%20%40ok_borg">
+                    Tweet
+                </a>
+            </div>
+
+        </div>
+
 		<div ng-if="isLoggedIn" class="row top-buffer">
-			<div class="col-xs-6  saveyourown">
-				<a href="/#/new">Save your own snippet</a>
-			</div>
+			<a href="/#/new">
+                <div class="col-xs-3 linkb cwhite lightblue">
+			        Save snippet
+			    </div>
+            </a>
 			<div class="col-xs-6">
 				<span class="pull-right">
-					Logged in as <a href="/#/me">{{user.Login}}</a>
+					<a href="/#/me">{{user.Login}}</a>
 				</span>
 			</div>
 		</div>
+
 		<div ng-if="!isLoggedIn" class="row top-buffer">
-			<div class="col-xs-12">
-				<a href="{{apiBaseUrl}}/v1/redirect/github/authorize">Log in with github</a> to create your own content
-			</div>
+			<a href="{{apiBaseUrl}}/v1/redirect/github/authorize">
+                <div class="col-xs-3 linkb blue">
+			        Log in with github
+			    </div>
+             </a>
 		</div>
-        <div class="row top-buffer">
-            <a href="/#/latest">
-                <div class="linkb cblack red col-xs-2">
-                    Latest
-                </div>
-            </a>
-            <a href="https://github.com/ok-borg/borg">
-                <div class="linkb yellow cblack col-xs-2">
-                    Github
-                </div>
-            </a>
-            <a href="https://twitter.com/ok_borg">
-                <div class="linkb blue col-xs-2">
-                    Twitter
-                </div>
-            </a>
-            <a target="_blank" href="https://twitter.com/home/?status=Since%20I%20use%20Borg%2C%20I%20am%20a%20slightly%20less%20grumpy%20bash%20user!%20Check%20it%20out%3A%20http%3A%2F%2Fok-b.org%20via%20%40ok_borg">
-                <div class="linkb border cblack col-xs-2">
-                    Spread
-                </div>
-            </a>
-        </div>
+
 	</div>
 </div>
 
