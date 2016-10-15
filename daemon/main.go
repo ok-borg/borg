@@ -38,8 +38,6 @@ var (
 	githubClientSecret = flag.String("github-client-secret", "", "Github client secret")
 	sm                 = flag.String("sitemap", "", "Sitemap location. Leave empty if you don't want a sitemap to be generated")
 	analytics          = flag.String("analytics", "", "Analytics tracking id")
-	certFile           = flag.String("certfile", "", "SSL cert file")
-	keyFile            = flag.String("keyfile", "", "SSL key file")
 	sqlAddr            = flag.String("sqladdr", "127.0.0.1:3306", "Mysql address")
 	sqlIds             = flag.String("sqlids", "root:root", "Mysql identifier")
 )
