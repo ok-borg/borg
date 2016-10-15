@@ -1,0 +1,15 @@
+- name: Deploy web server and runners 
+  hosts: borg
+  become: True
+  become_method: sudo
+  tags: code 
+  tasks:
+    # webserver
+    - name: copy nginx conf
+      copy: src=../../proxy/nginx.conf dest=/var/nginx-proxy.conf
+    - name: stop running
+      shell: sudo docker rm -f borg-proxy
+      ignore_errors: true 
+    - name: start container
+      shell: docker run -p=9993:9993 -v "/etc/letsencrypt/archive/ok-b.org:/etc/cruft" -v /var/nginx-proxy.conf:/etc/nginx/nginx.conf:ro --name=borg-proxy -d nginx
+    
