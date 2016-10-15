@@ -3,11 +3,12 @@ package endpoints
 import (
 	"errors"
 	"fmt"
+	"reflect"
+
 	"github.com/google/go-github/github"
 	"github.com/jpillora/go-ogle-analytics"
 	"golang.org/x/oauth2"
 	"gopkg.in/olivere/elastic.v3"
-	"reflect"
 )
 
 // NewEndpoints is just below the http handlers

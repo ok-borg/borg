@@ -2,14 +2,15 @@ package access
 
 import (
 	"fmt"
+	"net/http"
+	"sync"
+	"time"
+
 	log "github.com/cihub/seelog"
 	httpr "github.com/julienschmidt/httprouter"
 	"github.com/ok-borg/borg/daemon/endpoints"
 	"golang.org/x/net/context"
 	"gopkg.in/olivere/elastic.v3"
-	"net/http"
-	"sync"
-	"time"
 )
 
 type AccessKinds int
@@ -113,6 +114,7 @@ func IfAuth(client *elastic.Client, handler func(ctx context.Context, w http.Res
 			writeResponse(w, http.StatusUnauthorized, "borg-api: Invalid access token")
 			return
 		}
+
 		// no errors, process the handler
 		ctx := context.WithValue(context.Background(), "token", token)
 		ctx = context.WithValue(ctx, "userId", u.Id)
