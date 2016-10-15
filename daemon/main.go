@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"time"
 
+	"gopkg.in/olivere/elastic.v3"
+
 	"golang.org/x/net/context"
 
 	log "github.com/cihub/seelog"
@@ -24,7 +26,6 @@ import (
 	"github.com/ok-borg/borg/types"
 	"github.com/rs/cors"
 	"golang.org/x/oauth2"
-	"gopkg.in/olivere/elastic.v3"
 )
 
 const (
@@ -111,6 +112,7 @@ func main() {
 	//r.DELETE("/v1/p/:id", access.IfAuth(deleteSnippet))
 	r.PUT("/v1/p", access.IfAuth(client, access.Control(updateSnippet, access.Update)))
 	r.POST("/v1/worked", access.IfAuth(client, snippetWorked))
+	r.POST("/v1/slack", slackCommand)
 
 	// organizations
 	r.POST("/v1/organizations", access.IfAuth(client, createOrganization))
@@ -603,4 +605,17 @@ func expelUserFromOrganization(
 		}
 	}
 
+}
+
+func slackCommand(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+	if err := r.ParseForm(); err != nil {
+		writeResponse(w, http.StatusInternalServerError, "Something wrong happened, please try again later.")
+		return
+	}
+	if res, err := ep.Slack(r.FormValue("text")); err != nil {
+		writeResponse(w, http.StatusInternalServerError, "Something wrong happened, please try again later.")
+		return
+	} else {
+		writeResponse(w, http.StatusOK, res)
+	}
 }

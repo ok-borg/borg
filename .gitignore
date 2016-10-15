@@ -35,3 +35,6 @@ bower_components/
 
 #Atom ctags
 .tags*
+
+# Other
+daemon_linux_amd64
