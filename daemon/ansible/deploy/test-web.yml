@@ -1,0 +1,17 @@
+- name: Deploy web server and runners 
+  hosts: borg
+  become: True
+  become_method: sudo
+  tags: code 
+  tasks:
+    # webserver
+    - name: pull 
+      shell: docker pull crufter/borg-test-web 
+    - name: copy nginx conf
+      copy: src=../../../web-client/nginx.conf dest=/var/nginx.conf
+    - name: stop running
+      shell: sudo docker rm -f borg-test-web 
+      ignore_errors: true
+    - name: start container
+      shell: docker run -p=81:80 -p=444:443 -v "/etc/letsencrypt/archive/ok-b.org:/etc/cruft" -v /var/sitemap/sitemap.xml.gz:/usr/share/nginx/html/sitemap.xml.gz:ro -v /var/nginx.conf:/etc/nginx/nginx.conf:ro --name=borg-test-web -d crufter/borg-test-web
+    
