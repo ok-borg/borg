@@ -1,7 +1,7 @@
 <div class="row index">
 	<div class="col-centered col-xs-8">
 		<div class="row text-center">
-			<a href="https://github.com/ok-borg/borg"><img id="logo" src="https://github.com/ok-borg/borg/raw/master/borg_mascot.png" /></a>
+			<a href="https://github.com/ok-borg/borg"><img id="logo" src="/borg_mascot.png" /></a>
 		</div>
 		<div id="big-search" class="row">
 			<form novalidate id="quoteForm" class="simple-form" ng-submit="submit()">
@@ -12,7 +12,7 @@
         <div class="row top-buffer">
             
             <div class="col-xs-1">
-                <a href="/#/latest">
+                <a href="/latest">
                     Latest
                 </a>
             </div>
@@ -35,23 +35,29 @@
                 </a>
             </div>
 
-        </div>
-
-		<div ng-if="isLoggedIn" class="row top-buffer">
-			<a href="/new">
-                <div class="col-xs-3 linkb cwhite lightblue">
-			        Save snippet
-			    </div>
-            </a>
-			<div class="col-xs-6">
+            <div ng-if="isLoggedIn" class="col-xs-8">
 				<span class="pull-right">
 					<a href="/me">{{user.Login}}</a>
 				</span>
 			</div>
-		</div>
 
-		<div ng-if="!isLoggedIn" class="row top-buffer">
-			<a href="{{apiBaseUrl}}/v1/redirect/github/authorize">
+        </div>
+
+		<div class="row top-buffer">
+            
+            <a href="#" ng-click="submit()">
+                <div class="col-xs-4 linkb grey cblack">
+                    Search
+                </div>
+            </a>            
+
+			<a ng-if="isLoggedIn" href="/new">
+                <div class="col-xs-3 linkb cblack green">
+			        Save snippet
+			    </div>
+            </a>
+
+            <a ng-if="!isLoggedIn" href="{{apiBaseUrl}}/v1/redirect/github/authorize">
                 <div class="col-xs-3 linkb blue">
 			        Log in with github
 			    </div>

@@ -1,8 +1,8 @@
 <div ng-controller="HeaderController" ng-include="'partials/header.html'"></div>
 
 <div class="page">
-        <div class="row">
-			<div class="col-xs-11">
+        <div class="row margin-bottom">
+			<div class="col-xs-offset-1 col-xs-10">
         		<h4>
 					<input class="title" ng-model="single.Title" />
 				</h4>
@@ -10,7 +10,6 @@
 		</div>
 		<div ng-repeat="(skey, solution) in single.Solutions" class="row">
 			<div class="col-xs-1 text-right">
-				[{{skey}}]	
 			</div>
 			<div class="col-xs-10">
 				<textarea rows="10">{{body(solution.Body)}}</textarea>
@@ -18,18 +17,20 @@
 		</div>
         <div class="row">
             <div class="col-xs-1 text-right">
-                New answer:
             </div>
             <div class="col-xs-10">
-                <textarea rows="10"></textarea>
+                <textarea placeholder="Input a new answer here" rows="10"></textarea>
             </div>
         </div>
-        <div class="row top-buffer">
+        <div class="row">
             <div class="col-xs-1 text-right">
             </div>
-            <div class="col-xs-10">
-                <button ng-click="save()">Save</button>
-            </div>
+
+            <a href="#" ng-click="save()">
+                <div class="col-xs-3 linkb green cblack">
+                    Save
+                </div>
+            </a>
         </div>
         <div class="row top-buffer">
             <div class="col-xs-1 text-right">
