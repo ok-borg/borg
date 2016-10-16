@@ -20,6 +20,7 @@ import (
 	"github.com/jpillora/go-ogle-analytics"
 	httpr "github.com/julienschmidt/httprouter"
 	"github.com/ok-borg/borg/daemon/access"
+	"github.com/ok-borg/borg/daemon/conf"
 	"github.com/ok-borg/borg/daemon/domain"
 	"github.com/ok-borg/borg/daemon/endpoints"
 	"github.com/ok-borg/borg/daemon/sitemap"
@@ -49,14 +50,54 @@ var (
 	db              *gorm.DB
 )
 
-type Logger struct{}
+func initWithConfFile() {
+	// let's assume the conf file is in the same place than the benary.
+	c, err := ioutil.ReadFile(".borg.conf.json")
+	if err != nil {
+		// just return, there is probably not configuration file
+		return
+	}
 
-func (l Logger) Printf(str string, i ...interface{}) {
-	fmt.Println(fmt.Sprintf(str, i...))
+	var conf conf.Conf
+	if err := json.Unmarshal(c, &conf); err != nil {
+		panic(fmt.Sprintf("[initWithConfFile] invalid config format: %s", err.Error()))
+	}
+
+	if conf.EsAddr != "" {
+		*esAddr = conf.EsAddr
+	}
+	if conf.Github.ClientId != "" {
+		*githubClientId = conf.Github.ClientId
+	}
+	if conf.Github.ClientSecret != "" {
+		*githubClientSecret = conf.Github.ClientSecret
+	}
+	if conf.Sitemap != "" {
+		*sm = conf.Sitemap
+	}
+	if conf.Analytics != "" {
+		*analytics = conf.Analytics
+	}
+	if conf.Mysql.Addr != "" {
+		*sqlAddr = conf.Mysql.Addr
+	}
+	if conf.Mysql.Ids != "" {
+		*sqlIds = conf.Mysql.Ids
+	}
+}
+
+func initLogger() {
+	logger, _ := log.LoggerFromConfigAsString(conf.Seelog)
+	log.ReplaceLogger(logger)
 }
 
 func init() {
+	// read config file before if it exists, so we can replaces the var that was set with the cmdline
+	// the cmdline is allowed to overwrite the config file.
+	initWithConfFile()
 	flag.Parse()
+	initLogger()
+
 	cl, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(fmt.Sprintf("http://%v", *esAddr)))
 	if err != nil {
 		panic(err)
