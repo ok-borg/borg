@@ -1,18 +1,18 @@
 <div ng-controller="HeaderController" ng-include="'partials/header.html'"></div>
 
 <div class="page">
-    <div ng-repeat="(key, hit) in results">
+    <div ng-repeat="(key, hit) in results" class="margin-bottom">
         <div class="row">
-			<div class="col-xs-12">
+            <div class="col-xs-1"></div>
+			<div class="col-xs-11">
         		<h4>
-					<a href="/#/t/{{hit.Id}}/{{slugify(hit.Title)}}">{{hit.Title}}</a>
+					<a href="/t/{{hit.Id}}/{{slugify(hit.Title)}}">{{hit.Title}}</a>
 				</h4>
 			</div>
 		</div>
         <div ng-repeat="(skey, solution) in hit.Solutions" class="row">
 			<div ng-if="skey < 3">
                 <div class="col-xs-1 text-right">
-				    [{{skey}}]	
 			    </div>
 			    <div class="col-xs-10">
 				    <pre>{{body(solution.Body)}}</pre>
@@ -21,8 +21,8 @@
             <div ng-if="skey == 4">
                 <div class="col-xs-1 text-right">
 			    </div>
-			    <div class="col-xs-10">
-				   <a href="/#/t/{{hit.Id}}/{{slugify(hit.Title)}}">More...</a> 
+			    <div class="col-xs-10 text-center">
+				   <a href="/t/{{hit.Id}}/{{slugify(hit.Title)}}">More...</a> 
 			    </div>	
             </div>
 		</div>

@@ -42,6 +42,10 @@ textarea {
     height: 60px;
 }
 
+.margin-bottom {
+    margin-bottom: 1em;
+}
+
 .header {
     background-color: #fdfdfd;
     -webkit-box-shadow:0px 1px 1px #eaeaea;
@@ -118,6 +122,18 @@ input.title {
     margin-left: 15px;
 }
 
+.borgblue {
+    background: #63D0EB;
+}
+
+.grey {
+    background: #eee;
+}
+
+.green {
+    background: #9FFCB7;
+}
+
 .yellow{
     background: #FFB267;
 }
@@ -128,6 +144,10 @@ input.title {
 
 .blue{
     background: #718CEE;
+}
+
+.lightblue {
+    background: #63D1EB;
 }
 
 .cblack {
