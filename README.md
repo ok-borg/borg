@@ -1,4 +1,4 @@
-<p align="center"><img height="180px" width="180px" src="https://github.com/fabric-8/borg/raw/master/borg_mascot.png" alt=""></p>
+<p align="center"><img height="180px" width="180px" src="https://github.com/fabric-8/borg/raw/master/assets/borg_mascot.png" alt=""></p>
 
 BORG - A terminal based search engine for bash snippets
 ===
