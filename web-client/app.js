@@ -115,8 +115,12 @@ app.controller('MainController', function($scope, $rootScope, $location, $window
         $window.ga('send', 'pageview', { page: $location.url() });
     })
     $scope.title = "OK borg - the quickest solution to your bash woes"
+    $scope.noIndex = false
     $rootScope.$on('titleChange', function(e, d) {
         $scope.title = d;
+    })
+    $rootScope.$on('noIndex', function(e, d) {
+        $scope.noIndex = d;
     })
 });
 
@@ -188,16 +192,31 @@ app.controller('LatestController', function(Session, $rootScope, $state, $interv
 });
 
 app.controller('SingleController', function(Session, $rootScope, $state, $interval, $scope, $http) {
-	var f = function() {
+	var related = function() {
+        $http.get(url + '/v1/query', {
+            params: {
+				"t": Session.getToken(),
+				"q": $scope.single.Title,
+                "l": 6
+			}
+     	}).then(function(rsp){
+			$scope.related = rsp.data;
+		}).catch(function(rsp) {
+            console.log(rsp);
+    	});
+    }
+    var f = function() {
 		$http.get(url + '/v1/p/' + $state.params.id).then(function(rsp){
 			$scope.single = rsp.data;
             $rootScope.$emit('titleChange', rsp.data.Title)
+            $rootScope.$emit('noIndex', !rsp.data.CreatedBy || rsp.data.CreatedBy.length == 0)
+            related();
 		}).catch(function(rsp) {
             console.log(rsp);
     	});
 	}
 	f()
-	$scope.slugify = function(text) {
+   	$scope.slugify = function(text) {
 		return text
         .toLowerCase()
         .replace(/[^\w ]+/g,'')
