@@ -279,3 +279,32 @@ func (e Endpoints) ExpelUserFromOrganization(
 
 	return userOrganizationDao.Delete(userOrganization.Id)
 }
+
+func (e Endpoints) GrantAdminRightToUser(
+	db *gorm.DB,
+	userId string,
+	userIdToAdmin string,
+	organizationId string,
+) error {
+	// first check if the user is admin
+	userOrganizationDao := domain.NewUserOrganizationDao(db)
+	adminOjl, err := userOrganizationDao.GetByUserAndOrganization(userId, organizationId)
+	if err != nil {
+		return errors.New(fmt.Sprintf(
+			"user (id=%s) is not member of the organization (id=%s)",
+			userId, organizationId))
+	}
+	if adminOjl.IsAdmin != 1 {
+		return errors.New(fmt.Sprintf(
+			"user (id=%s) is not administrator of organization (id=%s)",
+			userId, organizationId))
+	}
+
+	// then just get  the user organization assorciation and update it
+	userOrganization, err := userOrganizationDao.GetByUserAndOrganization(userIdToAdmin, organizationId)
+	if err != nil {
+		return errors.New(fmt.Sprintf("[Endpoints.ExpelUserFromOrganization] user (id=%s) is not part of organization (id=%s)", userIdToAdmin, organizationId))
+	}
+	userOrganization.IsAdmin = 1
+	return userOrganizationDao.Update(userOrganization)
+}
