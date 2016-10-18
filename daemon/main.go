@@ -138,45 +138,46 @@ func main() {
 	// decl routes
 
 	r.GET("/v1/redirect/github/authorize", redirectGithubAuthorize)
-	r.GET("/v1/query", q)
 	r.POST("/v1/auth/github", githubAuth)
 
+	r.GET("/v1/query", q)
+
 	// authenticated endpoints
-	r.GET("/v1/user", access.IfAuth(client, getUser))
+	r.GET("/v1/user", access.IfAuth(db, getUser))
 
 	// snippets
 	r.GET("/v1/p/:id", getSnippet)
 	r.GET("/v1/latest", getLatestSnippets)
-	r.POST("/v1/p", access.IfAuth(client, access.Control(createSnippet, access.Create)))
+	r.POST("/v1/p", access.IfAuth(db, access.Control(createSnippet, access.Create)))
 	//r.DELETE("/v1/p/:id", access.IfAuth(deleteSnippet))
-	r.PUT("/v1/p", access.IfAuth(client, access.Control(updateSnippet, access.Update)))
-	r.POST("/v1/worked", access.IfAuth(client, snippetWorked))
+	r.PUT("/v1/p", access.IfAuth(db, access.Control(updateSnippet, access.Update)))
+	r.POST("/v1/worked", access.IfAuth(db, snippetWorked))
 	r.POST("/v1/slack", slackCommand)
 
 	// organizations
-	r.POST("/v1/organizations", access.IfAuth(client, createOrganization))
-	r.GET("/v1/organizations", access.IfAuth(client, listUserOrganizations))
+	r.POST("/v1/organizations", access.IfAuth(db, createOrganization))
+	r.GET("/v1/organizations", access.IfAuth(db, listUserOrganizations))
 
 	// not rest at all but who cares ?
-	r.POST("/v1/organizations/leave/:id", access.IfAuth(client, leaveOrganization))
+	r.POST("/v1/organizations/leave/:id", access.IfAuth(db, leaveOrganization))
 	r.POST("/v1/organizations/expel/:oid/user/id/:uid",
-		access.IfAuth(client, expelUserFromOrganization))
+		access.IfAuth(db, expelUserFromOrganization))
 	r.POST("/v1/organizations/admins/:oid/user/id/:uid",
-		access.IfAuth(client, grantAdminRightToUser))
+		access.IfAuth(db, grantAdminRightToUser))
 
 	// organizations-join-links
 	// this is only allowed for the organization admin
-	r.POST("/v1/organization-join-links", access.IfAuth(client, createOrganizationJoinLink))
-	r.DELETE("/v1/organization-join-links/id/:id", access.IfAuth(client, deleteOrganizationJoinLink))
+	r.POST("/v1/organization-join-links", access.IfAuth(db, createOrganizationJoinLink))
+	r.DELETE("/v1/organization-join-links/id/:id", access.IfAuth(db, deleteOrganizationJoinLink))
 	// get a join link for a specific organization
 	// this is allowed only by the organization admin in order to share it again, or delete it.
 	r.GET("/v1/organization-join-links/organizations/:id",
-		access.IfAuth(client, getOrganizationJoinLinkByOrganizationId))
+		access.IfAuth(db, getOrganizationJoinLinkByOrganizationId))
 	// get a join link from a join-link id.
-	r.GET("/v1/organization-join-links/id/:id", access.IfAuth(client, getOrganizationJoinLink))
+	r.GET("/v1/organization-join-links/id/:id", access.IfAuth(db, getOrganizationJoinLink))
 	// accept join link
 	// not restful at all, but pretty to read
-	r.POST("/v1/join/:id", access.IfAuth(client, joinOrganization))
+	r.POST("/v1/join/:id", access.IfAuth(db, joinOrganization))
 
 	handler := cors.New(cors.Options{AllowedHeaders: []string{"*"}, AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"}}).Handler(r)
 	log.Info("Starting http server")
@@ -376,11 +377,11 @@ func readJsonBody(r *http.Request, expectedBody interface{}) error {
 }
 
 func getUserByAccessToken(ctx context.Context) (domain.User, error) {
-	// get user in elastic
-	u, _ := ep.GetUser(ctx.Value("token").(string))
+	accessTokenDao := domain.NewAccessTokenDao(db)
+	at, _ := accessTokenDao.GetByToken(ctx.Value("token").(string))
 	// get or create it in mysql
 	userDao := domain.NewUserDao(db)
-	return userDao.GetOrCreateFromRaw(u.Login, u.Email, u.Id)
+	return userDao.GetById(at.UserId)
 }
 
 func createOrganization(

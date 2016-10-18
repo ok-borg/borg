@@ -44,6 +44,13 @@ func (e *Endpoints) GithubAuth(code string) (*User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting name: %v", err)
 	}
+
+	// here we got a github user
+	// first check if a github_users row exists with this github_id.
+	// if yes just save the token and associated it to the borg user linked to the github user
+	// if no, create a borg_users from the github users, associated both in a github_users row
+	// and finally create the access_token in db.
+
 	usr, err := toUser(user)
 	if err != nil {
 		return nil, fmt.Errorf("error converting user: %v", err)
