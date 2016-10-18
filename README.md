@@ -24,6 +24,8 @@ borg "find all txt"
         [b] FILES=`find public_html -type d`
 ```
 
+Can't find what you are looking for? Be a good hacker and contribute your wisdom to the hive mind - (add your own snippets or tweak the existing ones.)[(https://github.com/ok-borg/borg/tree/master/docs)]
+
 ### Install
 
 The following releases only let you search, to use add/edit install from source, releases are coming soon.
