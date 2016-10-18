@@ -81,3 +81,10 @@ func (ud *UserOrganizationDao) Update(u UserOrganization) error {
 func (ud *UserOrganizationDao) Delete(id string) error {
 	return ud.db.Delete(&UserOrganization{Id: id}).Error
 }
+
+func (ud *UserOrganizationDao) GetAdmins(organizastionId string) ([]UserOrganization, error) {
+	models := []UserOrganization{}
+	return models, ud.db.Where("user_organizations.organization_id = ?", organizastionId).
+		Where("user_organizations.is_admin = 1").
+		Find(&models).Error
+}

@@ -159,7 +159,10 @@ func main() {
 
 	// not rest at all but who cares ?
 	r.POST("/v1/organizations/leave/:id", access.IfAuth(client, leaveOrganization))
-	r.POST("/v1/organizations/expel/:oid/user/id/:uid", access.IfAuth(client, expelUserFromOrganization))
+	r.POST("/v1/organizations/expel/:oid/user/id/:uid",
+		access.IfAuth(client, expelUserFromOrganization))
+	r.POST("/v1/organizations/admins/:oid/user/id/:uid",
+		access.IfAuth(client, grantAdminRightToUser))
 
 	// organizations-join-links
 	// this is only allowed for the organization admin
@@ -630,6 +633,37 @@ func expelUserFromOrganization(
 	} else {
 		// ceate the organizartion Join Link
 		if err := ep.ExpelUserFromOrganization(db, u.Id, userId, organizationId); err != nil {
+			writeResponse(w, http.StatusInternalServerError,
+				"borg-api: cannot expel from organization: "+err.Error())
+			return
+		} else {
+			writeJsonResponse(w, http.StatusNoContent, "")
+		}
+	}
+}
+
+func grantAdminRightToUser(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	p httpr.Params,
+) {
+	organizationId := p.ByName("oid")
+	if len(organizationId) == 0 {
+		writeResponse(w, http.StatusBadRequest, "borg-api: Missing organizationId url parameter")
+		return
+	}
+	userId := p.ByName("uid")
+	if len(userId) == 0 {
+		writeResponse(w, http.StatusBadRequest, "borg-api: Missing userId url parameter")
+		return
+	}
+
+	if u, err := getUserByAccessToken(ctx); err != nil {
+		// handle shit here
+	} else {
+		// ceate the organizartion Join Link
+		if err := ep.GrantAdminRightToUser(db, u.Id, userId, organizationId); err != nil {
 			writeResponse(w, http.StatusInternalServerError,
 				"borg-api: cannot expel from organization: "+err.Error())
 			return
