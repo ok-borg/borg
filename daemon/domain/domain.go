@@ -12,19 +12,19 @@ type User struct {
 }
 
 type Organization struct {
-	Id          string
-	Name        string
-	UserAdminId string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	CreatedBy   string
-	UpdatedBy   string
+	Id        string
+	Name      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	CreatedBy string
+	UpdatedBy string
 }
 
 type UserOrganization struct {
 	Id             string
 	UserId         string
 	OrganizationId string
+	IsAdmin        int
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	CreatedBy      string
