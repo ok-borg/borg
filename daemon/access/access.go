@@ -9,6 +9,7 @@ import (
 	log "github.com/cihub/seelog"
 	"github.com/jinzhu/gorm"
 	httpr "github.com/julienschmidt/httprouter"
+	"github.com/ok-borg/borg/daemon/ctxext"
 	"github.com/ok-borg/borg/daemon/domain"
 	"golang.org/x/net/context"
 )
@@ -124,9 +125,9 @@ func IfAuth(db *gorm.DB, handler func(ctx context.Context, w http.ResponseWriter
 		}
 
 		// no errors, process the handler
-		ctx := context.WithValue(context.Background(), "token", token)
-		ctx = context.WithValue(ctx, "userId", user.Id)
-		ctx = context.WithValue(ctx, "user", user)
+		ctx := ctxext.WithTokenString(context.Background(), token)
+		ctx = ctxext.WithUserId(ctx, user.Id)
+		ctx = ctxext.WithUser(ctx, user)
 		handler(ctx, w, r, p)
 	}
 }

@@ -23,27 +23,6 @@ func (ud *UserDao) GetByIds(ids []string) ([]User, error) {
 	return us, err
 }
 
-/*
-func (ud *UserDao) GetOrCreateFromRaw(username, email, githubId string) (User, error) {
-	// try to get the user
-	u, err := ud.GetByGithubUserId(githubId)
-	if err != nil {
-		// user do not exist creating new one
-		newUser := User{
-			Id:        uuid.NewV4().String(),
-			Username:  username,
-			Email:     email,
-			GithubId:  githubId,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		}
-		return newUser, ud.Create(newUser)
-	}
-
-	return u, nil
-}
-*/
-
 func (ud *UserDao) GetByEmailOrUsername(str string) (User, error) {
 	u := User{}
 	err := ud.db.Where("users.email = ? OR users.username = ?", str, str).

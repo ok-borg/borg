@@ -16,7 +16,7 @@ func (at *AccessTokenDao) Create(model AccessToken) error {
 
 func (at *AccessTokenDao) GetByToken(token string) (AccessToken, error) {
 	model := AccessToken{}
-	err := at.db.Where("access_token.token = ?", token).
+	err := at.db.Where("access_tokens.token = ?", token).
 		First(&model).Error
 	return model, err
 }
@@ -26,6 +26,6 @@ func (at *AccessTokenDao) Delete(id string) error {
 }
 
 func (at *AccessTokenDao) DeleteByToken(token string) error {
-	return at.db.Where("access_token.token = ?", token).
+	return at.db.Where("access_tokens.token = ?", token).
 		Delete(&AccessToken{}).Error
 }

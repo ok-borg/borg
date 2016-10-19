@@ -2,6 +2,10 @@ package domain
 
 import "time"
 
+const (
+	AccountTypeGithub = "GITHUB"
+)
+
 type User struct {
 	Id          string
 	Login       string
