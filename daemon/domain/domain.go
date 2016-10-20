@@ -2,11 +2,33 @@ package domain
 
 import "time"
 
+const (
+	AccountTypeGithub = "GITHUB"
+)
+
 type User struct {
+	Id          string
+	Login       string
+	Name        string
+	Email       string
+	AvatarUrl   string
+	AccountType string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type GithubUser struct {
+	Id         string
+	GithubId   string
+	BorgUserId string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+type AccessToken struct {
 	Id        string
-	Username  string
-	Email     string
-	GithubId  string
+	Token     string
+	UserId    string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

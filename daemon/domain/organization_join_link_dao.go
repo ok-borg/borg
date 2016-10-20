@@ -17,8 +17,9 @@ func (od *OrganizationJoinLinkDao) GetById(id string) (OrganizationJoinLink, err
 }
 
 func (od *OrganizationJoinLinkDao) GetByOrganizationId(id string) (OrganizationJoinLink, error) {
-	o := OrganizationJoinLink{OrganizationId: id}
-	err := od.db.First(&o).Error
+	o := OrganizationJoinLink{}
+	err := od.db.Where("organization_id = ?", id).
+		First(&o).Error
 	return o, err
 }
 

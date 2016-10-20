@@ -1,11 +1,6 @@
 package domain
 
-import (
-	"time"
-
-	"github.com/jinzhu/gorm"
-	"github.com/satori/go.uuid"
-)
+import "github.com/jinzhu/gorm"
 
 type UserDao struct {
 	db *gorm.DB
@@ -28,31 +23,6 @@ func (ud *UserDao) GetByIds(ids []string) ([]User, error) {
 	return us, err
 }
 
-func (ud *UserDao) GetByGithubUserId(id string) (User, error) {
-	u := User{GithubId: id}
-	err := ud.db.First(&u).Error
-	return u, err
-}
-
-func (ud *UserDao) GetOrCreateFromRaw(username, email, githubId string) (User, error) {
-	// try to get the user
-	u, err := ud.GetByGithubUserId(githubId)
-	if err != nil {
-		// user do not exist creating new one
-		newUser := User{
-			Id:        uuid.NewV4().String(),
-			Username:  username,
-			Email:     email,
-			GithubId:  githubId,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		}
-		return newUser, ud.Create(newUser)
-	}
-
-	return u, nil
-}
-
 func (ud *UserDao) GetByEmailOrUsername(str string) (User, error) {
 	u := User{}
 	err := ud.db.Where("users.email = ? OR users.username = ?", str, str).
@@ -61,14 +31,16 @@ func (ud *UserDao) GetByEmailOrUsername(str string) (User, error) {
 }
 
 func (ud *UserDao) GetByEmail(email string) (User, error) {
-	u := User{Email: email}
-	err := ud.db.First(&u).Error
+	u := User{}
+	err := ud.db.Where("users.email = ?", email).
+		First(&u).Error
 	return u, err
 }
 
-func (ud *UserDao) GetByUsername(username string) (User, error) {
-	u := User{Username: username}
-	err := ud.db.First(&u).Error
+func (ud *UserDao) GetByLogin(login string) (User, error) {
+	u := User{}
+	err := ud.db.Where("users.login = ?", login).
+		First(&u).Error
 	return u, err
 }
 

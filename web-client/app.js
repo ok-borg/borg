@@ -345,10 +345,10 @@ function gup( name, url ) {
 app.controller('LoginController', function(Session, $scope, $http, $rootScope, $state) {
     var code = gup("code");
 	$http.post(url + '/v1/auth/github', code).then(function(rsp) {
-		if (!rsp.data.Token) {
+    if (!rsp.data.token.Token) {
 			$scope.error = rsp.data;
 		} else {
-			Session.setToken(rsp.data.Token);
+			Session.setToken(rsp.data.token.Token);
 			$state.go('index');
 		} 
     }).catch(function(rsp) {

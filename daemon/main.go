@@ -21,7 +21,7 @@ import (
 	httpr "github.com/julienschmidt/httprouter"
 	"github.com/ok-borg/borg/daemon/access"
 	"github.com/ok-borg/borg/daemon/conf"
-	"github.com/ok-borg/borg/daemon/domain"
+	"github.com/ok-borg/borg/daemon/ctxext"
 	"github.com/ok-borg/borg/daemon/endpoints"
 	"github.com/ok-borg/borg/daemon/sitemap"
 	"github.com/ok-borg/borg/types"
@@ -121,11 +121,6 @@ func main() {
 		},
 		Scopes: []string{"read:org"},
 	}
-	ep = endpoints.NewEndpoints(oauthCfg, client, analyticsClient)
-	r := httpr.New()
-	if len(*sm) > 0 {
-		go sitemapLoop(*sm, client)
-	}
 
 	// init mysql
 	var err error
@@ -135,48 +130,55 @@ func main() {
 	}
 	defer db.Close()
 
+	ep = endpoints.NewEndpoints(oauthCfg, client, analyticsClient, db)
+	r := httpr.New()
+	if len(*sm) > 0 {
+		go sitemapLoop(*sm, client)
+	}
+
 	// decl routes
 
 	r.GET("/v1/redirect/github/authorize", redirectGithubAuthorize)
-	r.GET("/v1/query", q)
 	r.POST("/v1/auth/github", githubAuth)
 
+	r.GET("/v1/query", q)
+
 	// authenticated endpoints
-	r.GET("/v1/user", access.IfAuth(client, getUser))
+	r.GET("/v1/user", access.IfAuth(db, getUser))
 
 	// snippets
 	r.GET("/v1/p/:id", getSnippet)
 	r.GET("/v1/latest", getLatestSnippets)
-	r.POST("/v1/p", access.IfAuth(client, access.Control(createSnippet, access.Create)))
+	r.POST("/v1/p", access.IfAuth(db, access.Control(createSnippet, access.Create)))
 	//r.DELETE("/v1/p/:id", access.IfAuth(deleteSnippet))
-	r.PUT("/v1/p", access.IfAuth(client, access.Control(updateSnippet, access.Update)))
-	r.POST("/v1/worked", access.IfAuth(client, snippetWorked))
+	r.PUT("/v1/p", access.IfAuth(db, access.Control(updateSnippet, access.Update)))
+	r.POST("/v1/worked", access.IfAuth(db, snippetWorked))
 	r.POST("/v1/slack", slackCommand)
 
 	// organizations
-	r.POST("/v1/organizations", access.IfAuth(client, createOrganization))
-	r.GET("/v1/organizations", access.IfAuth(client, listUserOrganizations))
+	r.POST("/v1/organizations", access.IfAuth(db, createOrganization))
+	r.GET("/v1/organizations", access.IfAuth(db, listUserOrganizations))
 
 	// not rest at all but who cares ?
-	r.POST("/v1/organizations/leave/:id", access.IfAuth(client, leaveOrganization))
+	r.POST("/v1/organizations/leave/:id", access.IfAuth(db, leaveOrganization))
 	r.POST("/v1/organizations/expel/:oid/user/id/:uid",
-		access.IfAuth(client, expelUserFromOrganization))
+		access.IfAuth(db, expelUserFromOrganization))
 	r.POST("/v1/organizations/admins/:oid/user/id/:uid",
-		access.IfAuth(client, grantAdminRightToUser))
+		access.IfAuth(db, grantAdminRightToUser))
 
 	// organizations-join-links
 	// this is only allowed for the organization admin
-	r.POST("/v1/organization-join-links", access.IfAuth(client, createOrganizationJoinLink))
-	r.DELETE("/v1/organization-join-links/id/:id", access.IfAuth(client, deleteOrganizationJoinLink))
+	r.POST("/v1/organization-join-links", access.IfAuth(db, createOrganizationJoinLink))
+	r.DELETE("/v1/organization-join-links/id/:id", access.IfAuth(db, deleteOrganizationJoinLink))
 	// get a join link for a specific organization
 	// this is allowed only by the organization admin in order to share it again, or delete it.
 	r.GET("/v1/organization-join-links/organizations/:id",
-		access.IfAuth(client, getOrganizationJoinLinkByOrganizationId))
+		access.IfAuth(db, getOrganizationJoinLinkByOrganizationId))
 	// get a join link from a join-link id.
-	r.GET("/v1/organization-join-links/id/:id", access.IfAuth(client, getOrganizationJoinLink))
+	r.GET("/v1/organization-join-links/id/:id", access.IfAuth(db, getOrganizationJoinLink))
 	// accept join link
 	// not restful at all, but pretty to read
-	r.POST("/v1/join/:id", access.IfAuth(client, joinOrganization))
+	r.POST("/v1/join/:id", access.IfAuth(db, joinOrganization))
 
 	handler := cors.New(cors.Options{AllowedHeaders: []string{"*"}, AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"}}).Handler(r)
 	log.Info("Starting http server")
@@ -210,12 +212,15 @@ func githubAuth(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	if err != nil {
 		panic(err)
 	}
-	user, err := ep.GithubAuth(string(body))
+	user, token, err := ep.GithubAuth(string(body))
 	if err != nil {
 		fmt.Fprintln(w, fmt.Sprintf("Auth failed: %v", err))
 		return
 	}
-	bs, err := json.Marshal(user)
+	ret := map[string]interface{}{}
+	ret["user"] = user
+	ret["token"] = token
+	bs, err := json.Marshal(ret)
 	if err != nil {
 		panic(err)
 	}
@@ -223,15 +228,7 @@ func githubAuth(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 }
 
 func getUser(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params) {
-	user, err := ep.GetUser(r.FormValue("token"))
-	if err != nil {
-		fmt.Fprintln(w, fmt.Sprintf("Getting user failed: %v", err))
-		return
-	}
-	if user == nil {
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		return
-	}
+	user, _ := ctxext.User(ctx)
 	bs, err := json.Marshal(user)
 	if err != nil {
 		panic(err)
@@ -375,14 +372,6 @@ func readJsonBody(r *http.Request, expectedBody interface{}) error {
 	return nil
 }
 
-func getUserByAccessToken(ctx context.Context) (domain.User, error) {
-	// get user in elastic
-	u, _ := ep.GetUser(ctx.Value("token").(string))
-	// get or create it in mysql
-	userDao := domain.NewUserDao(db)
-	return userDao.GetOrCreateFromRaw(u.Login, u.Email, u.Id)
-}
-
 func createOrganization(
 	ctx context.Context,
 	w http.ResponseWriter,
@@ -397,16 +386,14 @@ func createOrganization(
 		return
 	}
 
-	if u, err := getUserByAccessToken(ctx); err != nil {
-		// handle shit here
+	u, _ := ctxext.User(ctx)
+	// lets create an org
+	if o, err := ep.CreateOrganization(db, u.Id, expectedBody.Name); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			"borg-api: create organization error: "+err.Error())
+		return
 	} else {
-		// lets create an org
-		if o, err := ep.CreateOrganization(db, u.Id, expectedBody.Name); err != nil {
-			writeResponse(w, http.StatusInternalServerError, "borg-api: create organization error: "+err.Error())
-			return
-		} else {
-			writeJsonResponse(w, http.StatusOK, o)
-		}
+		writeJsonResponse(w, http.StatusOK, o)
 	}
 }
 
@@ -437,18 +424,14 @@ func createOrganizationJoinLink(
 		return
 	}
 
-	if u, err := getUserByAccessToken(ctx); err != nil {
-		// handle shit here
+	u, _ := ctxext.User(ctx)
+	// ceate the organizartion Join Link
+	if o, err := ep.CreateOrganizationJoinLink(db, u.Id, expectedBody.OrganizationId, expectedBody.Ttl); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			"borg-api: create organization join link error: "+err.Error())
+		return
 	} else {
-		// ceate the organizartion Join Link
-		if o, err := ep.CreateOrganizationJoinLink(db, u.Id, expectedBody.OrganizationId, expectedBody.Ttl); err != nil {
-			writeResponse(w, http.StatusInternalServerError,
-				"borg-api: create organization join link error: "+err.Error())
-			return
-		} else {
-			writeJsonResponse(w, http.StatusOK, o)
-		}
-
+		writeJsonResponse(w, http.StatusOK, o)
 	}
 }
 
@@ -465,17 +448,14 @@ func deleteOrganizationJoinLink(
 		return
 	}
 
-	if u, err := getUserByAccessToken(ctx); err != nil {
-		// handle shit here
-	} else {
-		// delete the organizartion Join Link
-		if err := ep.DeleteOrganizationJoinLink(db, u.Id, id); err != nil {
-			writeResponse(w, http.StatusInternalServerError,
-				"borg-api: delete organization join link error: "+err.Error())
-			return
-		}
-		writeResponse(w, http.StatusOK, "")
+	u, _ := ctxext.User(ctx)
+	// delete the organizartion Join Link
+	if err := ep.DeleteOrganizationJoinLink(db, u.Id, id); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			"borg-api: delete organization join link error: "+err.Error())
+		return
 	}
+	writeResponse(w, http.StatusOK, "")
 }
 
 // by id
@@ -517,17 +497,14 @@ func getOrganizationJoinLinkByOrganizationId(
 		return
 	}
 
-	if u, err := getUserByAccessToken(ctx); err != nil {
-		// handle shit here
+	u, _ := ctxext.User(ctx)
+	// ceate the organizartion Join Link
+	if ojl, err := ep.GetOrganizationJoinLinkForOrganization(db, u.Id, id); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			"borg-api: get organization join link error: "+err.Error())
+		return
 	} else {
-		// ceate the organizartion Join Link
-		if ojl, err := ep.GetOrganizationJoinLinkForOrganization(db, u.Id, id); err != nil {
-			writeResponse(w, http.StatusInternalServerError,
-				"borg-api: get organization join link error: "+err.Error())
-			return
-		} else {
-			writeJsonResponse(w, http.StatusOK, ojl)
-		}
+		writeJsonResponse(w, http.StatusOK, ojl)
 	}
 }
 
@@ -544,17 +521,14 @@ func joinOrganization(
 		return
 	}
 
-	if u, err := getUserByAccessToken(ctx); err != nil {
-		// handle shit here
+	u, _ := ctxext.User(ctx)
+	// ceate the organizartion Join Link
+	if err := ep.JoinOrganization(db, u.Id, id); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			"borg-api: cannot join organization: "+err.Error())
+		return
 	} else {
-		// ceate the organizartion Join Link
-		if err := ep.JoinOrganization(db, u.Id, id); err != nil {
-			writeResponse(w, http.StatusInternalServerError,
-				"borg-api: cannot join organization: "+err.Error())
-			return
-		} else {
-			writeJsonResponse(w, http.StatusOK, "")
-		}
+		writeJsonResponse(w, http.StatusOK, "")
 	}
 }
 
@@ -564,19 +538,15 @@ func listUserOrganizations(
 	w http.ResponseWriter,
 	r *http.Request,
 	p httpr.Params) {
-	if u, err := getUserByAccessToken(ctx); err != nil {
-		// handle shit here
+	u, _ := ctxext.User(ctx)
+	// ceate the organizartion Join Link
+	if orgz, err := ep.ListUserOrganizations(db, u.Id); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			"borg-api: list user organizations error: "+err.Error())
+		return
 	} else {
-		// ceate the organizartion Join Link
-		if orgz, err := ep.ListUserOrganizations(db, u.Id); err != nil {
-			writeResponse(w, http.StatusInternalServerError,
-				"borg-api: list user organizations error: "+err.Error())
-			return
-		} else {
-			writeJsonResponse(w, http.StatusOK, orgz)
-		}
+		writeJsonResponse(w, http.StatusOK, orgz)
 	}
-
 }
 
 // leave an organization,
@@ -593,19 +563,15 @@ func leaveOrganization(
 		return
 	}
 
-	if u, err := getUserByAccessToken(ctx); err != nil {
-		// handle shit here
+	u, _ := ctxext.User(ctx)
+	// ceate the organizartion Join Link
+	if err := ep.LeaveOrganization(db, u.Id, organizationId); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			"borg-api: cannot leave organization: "+err.Error())
+		return
 	} else {
-		// ceate the organizartion Join Link
-		if err := ep.LeaveOrganization(db, u.Id, organizationId); err != nil {
-			writeResponse(w, http.StatusInternalServerError,
-				"borg-api: cannot leave organization: "+err.Error())
-			return
-		} else {
-			writeJsonResponse(w, http.StatusNoContent, "")
-		}
+		writeJsonResponse(w, http.StatusNoContent, "")
 	}
-
 }
 
 // expel an user from an organization,
@@ -628,17 +594,14 @@ func expelUserFromOrganization(
 		return
 	}
 
-	if u, err := getUserByAccessToken(ctx); err != nil {
-		// handle shit here
+	u, _ := ctxext.User(ctx)
+	// ceate the organizartion Join Link
+	if err := ep.ExpelUserFromOrganization(db, u.Id, userId, organizationId); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			"borg-api: cannot expel from organization: "+err.Error())
+		return
 	} else {
-		// ceate the organizartion Join Link
-		if err := ep.ExpelUserFromOrganization(db, u.Id, userId, organizationId); err != nil {
-			writeResponse(w, http.StatusInternalServerError,
-				"borg-api: cannot expel from organization: "+err.Error())
-			return
-		} else {
-			writeJsonResponse(w, http.StatusNoContent, "")
-		}
+		writeJsonResponse(w, http.StatusNoContent, "")
 	}
 }
 
@@ -659,17 +622,14 @@ func grantAdminRightToUser(
 		return
 	}
 
-	if u, err := getUserByAccessToken(ctx); err != nil {
-		// handle shit here
+	u, _ := ctxext.User(ctx)
+	// ceate the organizartion Join Link
+	if err := ep.GrantAdminRightToUser(db, u.Id, userId, organizationId); err != nil {
+		writeResponse(w, http.StatusInternalServerError,
+			"borg-api: cannot expel from organization: "+err.Error())
+		return
 	} else {
-		// ceate the organizartion Join Link
-		if err := ep.GrantAdminRightToUser(db, u.Id, userId, organizationId); err != nil {
-			writeResponse(w, http.StatusInternalServerError,
-				"borg-api: cannot expel from organization: "+err.Error())
-			return
-		} else {
-			writeJsonResponse(w, http.StatusNoContent, "")
-		}
+		writeJsonResponse(w, http.StatusNoContent, "")
 	}
 
 }

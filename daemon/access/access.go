@@ -7,10 +7,11 @@ import (
 	"time"
 
 	log "github.com/cihub/seelog"
+	"github.com/jinzhu/gorm"
 	httpr "github.com/julienschmidt/httprouter"
-	"github.com/ok-borg/borg/daemon/endpoints"
+	"github.com/ok-borg/borg/daemon/ctxext"
+	"github.com/ok-borg/borg/daemon/domain"
 	"golang.org/x/net/context"
-	"gopkg.in/olivere/elastic.v3"
 )
 
 type AccessKinds int
@@ -97,7 +98,7 @@ func Control(handler func(ctx context.Context, w http.ResponseWriter, r *http.Re
 
 // simple helper to check if the user is auth in the application,
 // if logged process the handler, or return directly
-func IfAuth(client *elastic.Client, handler func(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params)) func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
+func IfAuth(db *gorm.DB, handler func(ctx context.Context, w http.ResponseWriter, r *http.Request, p httpr.Params)) func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 	return func(w http.ResponseWriter, r *http.Request, p httpr.Params) {
 		var token string
 		if token = r.FormValue("token"); token == "" {
@@ -108,16 +109,25 @@ func IfAuth(client *elastic.Client, handler func(ctx context.Context, w http.Res
 				}
 			}
 		}
-		u, err := endpoints.NewEndpoints(nil, client, nil).GetUser(token)
-		if err != nil || u == nil {
-			// github may not recognize the token, return an error
+
+		accessTokenDao := domain.NewAccessTokenDao(db)
+		at, err := accessTokenDao.GetByToken(token)
+		if err != nil {
+			writeResponse(w, http.StatusUnauthorized, "borg-api: Invalid access token")
+			return
+		}
+		// get or create it in mysql
+		userDao := domain.NewUserDao(db)
+		user, err := userDao.GetById(at.UserId)
+		if err != nil {
 			writeResponse(w, http.StatusUnauthorized, "borg-api: Invalid access token")
 			return
 		}
 
 		// no errors, process the handler
-		ctx := context.WithValue(context.Background(), "token", token)
-		ctx = context.WithValue(ctx, "userId", u.Id)
+		ctx := ctxext.WithTokenString(context.Background(), token)
+		ctx = ctxext.WithUserId(ctx, user.Id)
+		ctx = ctxext.WithUser(ctx, user)
 		handler(ctx, w, r, p)
 	}
 }

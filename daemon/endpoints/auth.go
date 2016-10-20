@@ -3,20 +3,30 @@ package endpoints
 import (
 	"errors"
 	"fmt"
-	"reflect"
+	"strconv"
+	"time"
 
 	"github.com/google/go-github/github"
+	"github.com/jinzhu/gorm"
 	"github.com/jpillora/go-ogle-analytics"
+	"github.com/ok-borg/borg/daemon/domain"
+	"github.com/satori/go.uuid"
 	"golang.org/x/oauth2"
 	"gopkg.in/olivere/elastic.v3"
 )
 
 // NewEndpoints is just below the http handlers
-func NewEndpoints(oauthCfg *oauth2.Config, client *elastic.Client, a *ga.Client) *Endpoints {
+func NewEndpoints(
+	oauthCfg *oauth2.Config,
+	client *elastic.Client,
+	a *ga.Client,
+	db *gorm.DB,
+) *Endpoints {
 	return &Endpoints{
 		oauthCfg:  oauthCfg,
 		client:    client,
 		analytics: a,
+		db:        db,
 	}
 }
 
@@ -25,60 +35,17 @@ type Endpoints struct {
 	oauthCfg  *oauth2.Config
 	client    *elastic.Client
 	analytics *ga.Client
+	db        *gorm.DB
 }
 
-// GithubAuth exchanges a github code for a token, registers and returns a User
-func (e *Endpoints) GithubAuth(code string) (*User, error) {
-	if len(code) == 0 {
-		return nil, errors.New("Code received is empty")
-	}
-	tkn, err := e.oauthCfg.Exchange(oauth2.NoContext, code)
-	if err != nil {
-		return nil, fmt.Errorf("there was an issue getting your token: %v", err)
-	}
-	if !tkn.Valid() {
-		return nil, errors.New("Reretreived invalid token")
-	}
-	client := github.NewClient(e.oauthCfg.Client(oauth2.NoContext, tkn))
-	user, _, err := client.Users.Get("")
-	if err != nil {
-		return nil, fmt.Errorf("error getting name: %v", err)
-	}
-	usr, err := toUser(user)
-	if err != nil {
-		return nil, fmt.Errorf("error converting user: %v", err)
-	}
-	usr.Token = tkn.AccessToken
-	// we just set the user every time for now. reuse github id. save token next to it. identify
-	// user by querying users with that token.
-	err = e.setUser(*usr)
-	if err != nil {
-		return nil, fmt.Errorf("error converting user: %v", err)
-	}
-	return usr, nil
-}
-
-// GetUser by token
-func (e *Endpoints) GetUser(token string) (*User, error) {
-	return e.readUser("Token", token)
-}
-
-// User represents a borg user
-type User struct {
-	Id       string
-	Login    string
-	Email    string
-	Name     string
-	SourceId string
-	Token    string
-}
-
-func toUser(user *github.User) (*User, error) {
-	id := fmt.Sprintf("%v", *user.ID)
-	ret := &User{
-		Id:       id,
-		Login:    *user.Login,
-		SourceId: id,
+func githubUserToBorgUser(user *github.User) domain.User {
+	ret := domain.User{
+		Id:          uuid.NewV4().String(),
+		Login:       *user.Login,
+		AvatarUrl:   *user.AvatarURL,
+		AccountType: domain.AccountTypeGithub,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 	if user.Email != nil {
 		ret.Email = *user.Email
@@ -86,39 +53,99 @@ func toUser(user *github.User) (*User, error) {
 	if user.Name != nil {
 		ret.Name = *user.Name
 	}
-	return ret, nil
+	return ret
 }
 
-func (e *Endpoints) readUser(field, equalsTo string) (*User, error) {
-	termQuery := elastic.NewTermQuery(field, equalsTo)
-	res, err := e.client.Search().Index("borg").Type("user").Query(termQuery).From(0).Size(2).Do()
-	if err != nil {
-		return nil, err
+// GithubAuth exchanges a github code for a token, registers and returns a User
+func (e *Endpoints) GithubAuth(code string) (*domain.User, *domain.AccessToken, error) {
+	if len(code) == 0 {
+		return nil, nil, errors.New("Code received is empty")
 	}
-	var ttyp User
-	users := []User{}
-	for _, item := range res.Each(reflect.TypeOf(ttyp)) {
-		if t, ok := item.(User); ok {
-			users = append(users, t)
+	tkn, err := e.oauthCfg.Exchange(oauth2.NoContext, code)
+	if err != nil {
+		return nil, nil, fmt.Errorf("there was an issue getting your token: %v", err)
+	}
+	if !tkn.Valid() {
+		return nil, nil, errors.New("Reretreived invalid token")
+	}
+	client := github.NewClient(e.oauthCfg.Client(oauth2.NoContext, tkn))
+	user, _, err := client.Users.Get("")
+	if err != nil {
+		return nil, nil, fmt.Errorf("error getting name: %v", err)
+	}
+	// here we got a github user
+	// first check if a github_users row exists with this github_id.
+	// if yes just save the token and associated it to the borg user linked to the github user
+	// if no, create a borg_users from the github users, associated both in a github_users row
+	// and finally create the access_token in db.
+	ghUserDao := domain.NewGithubUserDao(e.db)
+
+	var borgUser domain.User
+
+	ghUser, err := ghUserDao.GetByGithubId(fmt.Sprintf("%v", *user.ID))
+	if err != nil {
+		// github user do not exist
+		// so the borg user cannot exists too
+		// first create it
+		newUser := githubUserToBorgUser(user)
+		userDao := domain.NewUserDao(e.db)
+		if err := userDao.Create(newUser); err != nil {
+			return nil, nil, fmt.Errorf("error creating new user %s", err.Error())
+		}
+
+		// create the github user to link to our new borg user
+		newGithubUser := domain.GithubUser{
+			Id:         uuid.NewV4().String(),
+			GithubId:   strconv.Itoa(*user.ID),
+			BorgUserId: newUser.Id,
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
+		}
+		if err := ghUserDao.Create(newGithubUser); err != nil {
+			return nil, nil, fmt.Errorf("error creating new github user %s", err.Error())
+		}
+
+		borgUser = newUser
+
+	} else {
+		var err error
+		userDao := domain.NewUserDao(e.db)
+		borgUser, err = userDao.GetById(ghUser.BorgUserId)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error getting user %s", err.Error())
 		}
 	}
-	switch {
-	case len(users) == 0:
-		return nil, nil
-	case len(users) > 1:
-		return nil, fmt.Errorf("Multiple users found with %v %v ", field, equalsTo)
+
+	// then just need to try to get the access token
+	tokenDao := domain.NewAccessTokenDao(e.db)
+	token, err := tokenDao.GetByToken(tkn.AccessToken)
+	if err != nil {
+		// token do not exist in db, just create it
+		token = domain.AccessToken{
+			Id:        uuid.NewV4().String(),
+			Token:     tkn.AccessToken,
+			UserId:    borgUser.Id,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		if err := tokenDao.Create(token); err != nil {
+			return nil, nil, fmt.Errorf("error creating token for user: %s", err.Error())
+		}
 	}
-	return &users[0], nil
+
+	return &borgUser, &token, nil
 }
 
-// register or update the token
-func (e *Endpoints) setUser(user User) error {
-	_, err := e.client.Index().
-		Index("borg").
-		Type("user").
-		Id(user.Id).
-		BodyJson(user).
-		Refresh(true).
-		Do()
-	return err
+// GetUser by token
+func (e *Endpoints) GetUser(token string) (*domain.User, error) {
+	// first get token
+	tokenDao := domain.NewAccessTokenDao(e.db)
+	t, err := tokenDao.GetByToken(token)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("token (%s) is associated to no users", token))
+	}
+	userDao := domain.NewUserDao(e.db)
+	u, _ := userDao.GetById(t.UserId)
+	return &u, nil
+
 }
