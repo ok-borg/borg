@@ -29,7 +29,7 @@ func help() {
 	fmt.Print("\033[4mUsage:\033[0m\n\n")
 	fmt.Print("\t$ \033[32mborg \"your question\"\033[0m\n")
 	fmt.Print("\t$ \033[32mborg COMMAND\033[0m\n")
-	fmt.Print("\n\t  BORG - A terminal based search engine for bash snippets\n\n")
+	fmt.Print("\n\t  BORG - A terminal based search for bash snippets\n\n")
 	fmt.Print("\033[4mCommands:\033[0m\n\n")
 	for k, v := range commands.Commands {
 		fmt.Printf("\t\033[32m+ %-8s\t\033[0m%s\n", k, v.Summary)
