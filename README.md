@@ -1,6 +1,6 @@
 <p align="center"><img height="180px" width="180px" src="https://github.com/fabric-8/borg/raw/master/assets/borg_mascot.png" alt=""></p>
 
-BORG - A terminal based search for bash snippets
+BORG - Terminal based search for bash snippets
 ===
 ![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/ok-borg/borg.svg?branch=master)](https://travis-ci.org/ok-borg/borg) [![Go Report Card](https://goreportcard.com/badge/github.com/ok-borg/borg)](https://goreportcard.com/report/github.com/ok-borg/borg) [![Slack Status](http://ok-b.org:1492/badge.svg)](http://ok-b.org:1492)
 
