@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ok-borg/borg/conf"
-	"github.com/ok-borg/borg/types"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -13,6 +11,9 @@ import (
 	"strings"
 	"text/tabwriter"
 	"time"
+
+	"github.com/ok-borg/borg/conf"
+	"github.com/ok-borg/borg/types"
 )
 
 // Query the borg server
@@ -20,11 +21,11 @@ func Query(q string) error {
 	client := &http.Client{Timeout: time.Duration(10 * time.Second)}
 	req, err := http.NewRequest("GET", fmt.Sprintf("%v/v1/query?l=%v&p=%v&q=%v", host(), *conf.L, *conf.P, url.QueryEscape(q)), nil)
 	if err != nil {
-		fmt.Println("Failed to create request: " + err.Error())
+		return fmt.Errorf("Failed to create request: %s", err.Error())
 	}
 	rsp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error while making request: " + err.Error())
+		return fmt.Errorf("Error while making request: %s", err.Error())
 	}
 	defer rsp.Body.Close()
 	body, err := ioutil.ReadAll(rsp.Body)
