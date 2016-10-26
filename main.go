@@ -7,10 +7,15 @@ import (
 	"github.com/fatih/color"
 	flag "github.com/juju/gnuflag"
 	"github.com/ok-borg/borg/commands"
+	"github.com/ok-borg/borg/conf"
 )
 
 func main() {
 	flag.Parse(true)
+	if *conf.Version || *conf.V {
+		version()
+		return
+	}
 	if flag.NArg() == 0 {
 		help()
 		return
@@ -50,4 +55,7 @@ func help() {
 	// TODO: Replace --help so that it displays this usage instead
 	blue.Printf("\t%-8s\t", "--help")
 	fmt.Println("Show help")
+}
+func version() {
+	fmt.Println("Version number here")
 }

@@ -27,11 +27,12 @@ var (
 
 	// D flag enables debug mode
 	D = flag.Bool("d", false, "Debug mode")
-
 	// DontPipe
 	DontPipe = flag.Bool("dontpipe", false, "Flag for internal use - ignore this")
-)
-
+	// Version flag displays current version
+	Version = flag.Bool("version", false, "Print version number")
+	// V flag displays current version
+	V = flag.Bool("v", false, "Print version number")
 var (
 	// HomeDir of the config and other files
 	HomeDir string
