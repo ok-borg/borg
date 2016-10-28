@@ -16,10 +16,10 @@ func init() {
 
 // Login saves a token acquired from the web page into the user config file
 func Editor(args []string) error {
-	editor := args[1]
-	if len(editor) == 0 {
+	if len(args) < 2 {
 		return errors.New("Please supply an editor. The default is vim, so if you are happy with that, do nothing.")
 	}
+	editor := args[1]
 	conf, err := conf.Get()
 	if err != nil {
 		return err

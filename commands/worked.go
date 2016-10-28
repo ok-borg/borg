@@ -23,6 +23,9 @@ func init() {
 
 // Worked lets you mark a result as relevant one for a query
 func Worked(args []string) error {
+	if len(args) != 2 {
+		return errors.New("Please supply a query index.")
+	}
 	queryIndex := args[1]
 	i, err := strconv.ParseInt(queryIndex, 10, 32)
 	if err != nil {
