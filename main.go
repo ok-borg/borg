@@ -10,10 +10,12 @@ import (
 	"github.com/ok-borg/borg/conf"
 )
 
+var versionNumber, operatingSystem, architecture string
+
 func main() {
 	flag.Parse(true)
 	if *conf.Version || *conf.V {
-		version()
+		printVersion()
 		return
 	}
 	if flag.NArg() == 0 {
@@ -56,6 +58,6 @@ func help() {
 	blue.Printf("\t%-8s\t", "--help")
 	fmt.Println("Show help")
 }
-func version() {
-	fmt.Println("Version number here")
+func printVersion() {
+	fmt.Printf("\tVersion: %s (%s/%s)\n", versionNumber, operatingSystem, architecture)
 }
