@@ -59,5 +59,5 @@ func help() {
 	fmt.Println("Show help")
 }
 func printVersion() {
-	fmt.Printf("\tVersion: %s (%s/%s)\n", versionNumber, operatingSystem, architecture)
+	fmt.Printf("\tBorg version: %s (%s/%s)\n", versionNumber, operatingSystem, architecture)
 }
