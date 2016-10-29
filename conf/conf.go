@@ -55,6 +55,7 @@ type Config struct {
 	Token       string
 	DefaultTags []string
 	Editor      string
+	PipeTo      string
 }
 
 // Save config
