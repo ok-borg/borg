@@ -27,6 +27,9 @@ var (
 
 	// D flag enables debug mode
 	D = flag.Bool("d", false, "Debug mode")
+
+	// DontPipe
+	DontPipe = flag.Bool("dontpipe", false, "Flag for internal use - ignore this")
 )
 
 var (
@@ -55,6 +58,7 @@ type Config struct {
 	Token       string
 	DefaultTags []string
 	Editor      string
+	PipeTo      string
 }
 
 // Save config
