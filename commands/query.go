@@ -28,10 +28,13 @@ func Query(q string) error {
 		c2 := exec.Command(c.PipeTo)
 		c2.Stdin, _ = c1.StdoutPipe()
 		c2.Stdout = os.Stdout
-		_ = c2.Start()
-		_ = c1.Run()
-		_ = c2.Wait()
-		return nil
+		if err = c2.Start(); err != nil {
+			return err
+		}
+		if err = c1.Run(); err != nil {
+			return err
+		}
+		return c2.Wait()
 	}
 	client := &http.Client{Timeout: time.Duration(10 * time.Second)}
 	req, err := http.NewRequest("GET", fmt.Sprintf("%v/v1/query?l=%v&p=%v&q=%v", host(), *conf.L, *conf.P, url.QueryEscape(q)), nil)
