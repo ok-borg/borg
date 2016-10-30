@@ -23,8 +23,8 @@ func Query(q string) error {
 	if err != nil {
 		return err
 	}
-	if len(c.PipeTo) > 0 {
-		c1 := exec.Command("borg", `"`+q+`"`)
+	if len(c.PipeTo) > 0 && *conf.DontPipe == false {
+		c1 := exec.Command("borg", "--dontpipe", `"`+q+`"`)
 		c2 := exec.Command(c.PipeTo)
 		c2.Stdin, _ = c1.StdoutPipe()
 		c2.Stdout = os.Stdout
