@@ -10,18 +10,27 @@ Borg's succint output also makes it easy to glance over multiple snippets quickl
 ### Search
 
 ```
-borg "find all txt"
+borg "list only files"
 ```
 
 ```
-(1) Find and delete .txt files in bash
-        [a] find . -name "*.txt" | xargs rm
-        [b] find . -name "*.txt" -exec rm {} \;
-        [c] $ find  . -name "*.txt" -type f -delete
+(1) Bash: How to list only files?
+        [a] find . -maxdepth 1 -type f
+        [b] ls -l | egrep -v '^d'
+            ls -l | grep -v '^d'
 
-(2) bash loop through all find recursively in sub-directories
-        [a] FILES=$(find public_html -type f -name '*.php')
-        [b] FILES=`find public_html -type d`
+(2) List only common parent directories for files
+          [a] # read a line into the variable "prefix", split at slashes
+              IFS=/ read -a prefix
+              # while there are more lines, one after another read them into "next",
+              # also split at slashes
+              while IFS=/ read -a next; do
+                  new_prefix=()
+                  # for all indexes in prefix
+                  for ((i=0; i < "${#prefix[@]}"; ++i)); do
+                      # if the word in the new line matches the old one
+                      if [[ "${prefix[i]}" == "${next[i]}" ]]; then
+         ...
 ```
 
 Can't find what you are looking for? Be a good hacker and contribute your wisdom to the hive mind - [add your own snippets or tweak the existing ones.](https://github.com/ok-borg/borg/tree/master/docs)
