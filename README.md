@@ -13,7 +13,7 @@ Borg's succint output also makes it easy to glance over multiple snippets quickl
 borg "list only files"
 ```
 
-```
+```shell
 (1) Bash: How to list only files?
         [a] find . -maxdepth 1 -type f
         [b] ls -l | egrep -v '^d'
