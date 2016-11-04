@@ -20,17 +20,17 @@ borg "list only files"
             ls -l | grep -v '^d'
 
 (2) List only common parent directories for files
-          [a] # read a line into the variable "prefix", split at slashes
-              IFS=/ read -a prefix
-              # while there are more lines, one after another read them into "next",
-              # also split at slashes
-              while IFS=/ read -a next; do
-                  new_prefix=()
-                  # for all indexes in prefix
-                  for ((i=0; i < "${#prefix[@]}"; ++i)); do
-                      # if the word in the new line matches the old one
-                      if [[ "${prefix[i]}" == "${next[i]}" ]]; then
-         ...
+        [a] # read a line into the variable "prefix", split at slashes
+            IFS=/ read -a prefix
+            # while there are more lines, one after another read them into "next",
+            # also split at slashes
+            while IFS=/ read -a next; do
+                new_prefix=()
+                # for all indexes in prefix
+                for ((i=0; i < "${#prefix[@]}"; ++i)); do
+                    # if the word in the new line matches the old one
+                    if [[ "${prefix[i]}" == "${next[i]}" ]]; then
+        ...
 ```
 
 Can't find what you are looking for? Be a good hacker and contribute your wisdom to the hive mind - [add your own snippets or tweak the existing ones.](https://github.com/ok-borg/borg/tree/master/docs)
