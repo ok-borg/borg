@@ -1,11 +1,12 @@
 package conf
 
 import (
-	flag "github.com/juju/gnuflag"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"os/user"
+
+	flag "github.com/juju/gnuflag"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -33,6 +34,7 @@ var (
 	Version = flag.Bool("version", false, "Print version number")
 	// V flag displays current version
 	V = flag.Bool("v", false, "Print version number")
+)
 var (
 	// HomeDir of the config and other files
 	HomeDir string
