@@ -38,3 +38,5 @@ bower_components/
 
 # Other
 daemon_linux_amd64
+/.idea/
+/borg
