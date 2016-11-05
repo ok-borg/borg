@@ -4,9 +4,11 @@ OS := $(shell uname -s)
 ARCH := $(shell uname -m)
 
 all:
+	go get -d
 	go build -ldflags "-X main.versionNumber=${VERSION} -X main.operatingSystem=${OS} -X main.architecture=${ARCH}"
 # TODO learn for loop in makefile
 release:
+	go get -d
 	GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w -X main.versionNumber=${VERSION} -X main.operatingSystem=darwin -X main.architecture=amd64" -o borg_darwin_amd64
 	GOOS=darwin GOARCH=386 go build -ldflags "-s -w -X main.versionNumber=${VERSION} -X main.operatingSystem=darwin -X main.architecture=386" -o borg_darwin_386
 	GOOS=freebsd GOARCH=386 go build -ldflags "-s -w -X main.versionNumber=${VERSION} -X main.operatingSystem=freebsd -X main.architecture=386" -o borg_freebsd_386
