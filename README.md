@@ -33,6 +33,8 @@ borg "list only files"
         ...
 ```
 
+Use `borg pipeto less` to pipe the results straight to `less`, or any other program of your choosing.
+
 Can't find what you are looking for? Be a good hacker and contribute your wisdom to the hive mind - [add your own snippets or tweak the existing ones.](https://github.com/ok-borg/borg/tree/master/docs)
 
 ### Install
