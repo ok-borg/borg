@@ -63,15 +63,19 @@ func init() {
 }
 
 func borgDir() string {
-	if xdgConfigHome := os.Getenv("XDG_CONFIG_HOME"); xdgConfigHome != "" {
-		return filepath.Join(xdgConfigHome, "borg")
-	}
-
 	usr, err := user.Current()
 	if err != nil {
 		panic(err)
 	}
-	return filepath.Join(usr.HomeDir, ".borg")
+	dir := filepath.Join(usr.HomeDir, ".borg")
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if xdgConfigHome := os.Getenv("XDG_CONFIG_HOME"); xdgConfigHome != "" {
+			dir = filepath.Join(xdgConfigHome, "borg")
+		}
+	}
+
+	return dir
 }
 
 // Config file
