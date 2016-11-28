@@ -117,7 +117,7 @@ func writeToFile(query string, ps []types.Problem) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(conf.HomeDir+"/.borg/query", bs, 0755)
+	return ioutil.WriteFile(conf.QueryFile, bs, 0755)
 }
 
 func host() string {

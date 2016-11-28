@@ -28,7 +28,7 @@ func init() {
 }
 
 func findIdFromQueryIndex(queryIndex int) (string, error) {
-	bs, err := ioutil.ReadFile(conf.HomeDir + "/.borg/query")
+	bs, err := ioutil.ReadFile(conf.QueryFile)
 	if err != nil {
 		return "", err
 	}
@@ -74,12 +74,12 @@ func Edit(args []string) error {
 	if err != nil {
 		return err
 	}
-	ioutil.WriteFile(conf.HomeDir+"/.borg/edit", []byte(str), 0755)
-	cmd := exec.Command(c.Editor, conf.HomeDir+"/.borg/edit")
+	ioutil.WriteFile(conf.EditFile, []byte(str), 0755)
+	cmd := exec.Command(c.Editor, conf.EditFile)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Run()
-	bs, err := ioutil.ReadFile(conf.HomeDir + "/.borg/edit")
+	bs, err := ioutil.ReadFile(conf.EditFile)
 	if err != nil {
 		return err
 	}

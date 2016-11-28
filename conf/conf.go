@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/user"
+	"path/filepath"
 
 	flag "github.com/juju/gnuflag"
 	"gopkg.in/yaml.v2"
@@ -36,24 +37,41 @@ var (
 	V = flag.Bool("v", false, "Print version number")
 )
 var (
-	// HomeDir of the config and other files
-	HomeDir string
+	// EditFile borg edit file.
+	EditFile string
+	// ConfigFile borg config file.
+	ConfigFile string
+	// QueryFile borg query file.
+	QueryFile string
 )
 
 func init() {
+	borgDir := borgDir()
+
+	EditFile = filepath.Join(borgDir, "edit")
+	ConfigFile = filepath.Join(borgDir, "config.yml")
+	QueryFile = filepath.Join(borgDir, "query")
+
+	os.Mkdir(borgDir, os.ModePerm)
+	os.Create(EditFile)
+	if _, err := os.Stat(ConfigFile); os.IsNotExist(err) {
+		os.Create(ConfigFile)
+	}
+	if _, err := os.Stat(QueryFile); os.IsNotExist(err) {
+		os.Create(QueryFile)
+	}
+}
+
+func borgDir() string {
+	if xdgConfigHome := os.Getenv("XDG_CONFIG_HOME"); xdgConfigHome != "" {
+		return filepath.Join(xdgConfigHome, "borg")
+	}
+
 	usr, err := user.Current()
 	if err != nil {
 		panic(err)
 	}
-	HomeDir = usr.HomeDir
-	os.Mkdir(HomeDir+"/.borg", os.ModePerm)
-	os.Create(HomeDir + "/.borg/edit")
-	if _, err := os.Stat(HomeDir + "/.borg/config.yml"); os.IsNotExist(err) {
-		os.Create(HomeDir + "/.borg/config.yml")
-	}
-	if _, err := os.Stat(HomeDir + "/.borg/query"); os.IsNotExist(err) {
-		os.Create(HomeDir + "/.borg/query")
-	}
+	return filepath.Join(usr.HomeDir, ".borg")
 }
 
 // Config file
@@ -70,12 +88,12 @@ func (c Config) Save() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(HomeDir+"/.borg/config.yml", bs, os.ModePerm)
+	return ioutil.WriteFile(QueryFile, bs, os.ModePerm)
 }
 
 // Get config
 func Get() (Config, error) {
-	bs, err := ioutil.ReadFile(HomeDir + "/.borg/config.yml")
+	bs, err := ioutil.ReadFile(QueryFile)
 	if err != nil {
 		panic(err)
 	}

@@ -40,11 +40,11 @@ func New([]string) error {
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command(c.Editor, conf.HomeDir+"/.borg/edit")
+	cmd := exec.Command(c.Editor, conf.EditFile)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Run()
-	bs, err := ioutil.ReadFile(conf.HomeDir + "/.borg/edit")
+	bs, err := ioutil.ReadFile(conf.EditFile)
 	if err != nil {
 		return err
 	}
