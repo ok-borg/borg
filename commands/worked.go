@@ -43,7 +43,7 @@ func Worked(args []string) error {
 }
 
 func getLastQuery() (string, error) {
-	bs, err := ioutil.ReadFile(conf.HomeDir + "/.borg/query")
+	bs, err := ioutil.ReadFile(conf.QueryFile)
 	if err != nil {
 		return "", err
 	}
