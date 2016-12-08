@@ -72,6 +72,8 @@ func borgDir() string {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if xdgConfigHome := os.Getenv("XDG_CONFIG_HOME"); xdgConfigHome != "" {
 			dir = filepath.Join(xdgConfigHome, "borg")
+		} else {
+			dir = filepath.Join(os.Getenv("HOME"), ".config")
 		}
 	}
 
