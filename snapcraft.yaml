@@ -1,0 +1,21 @@
+name: borg
+version: master
+summary: Search and save shell snippets without leaving your terminal
+description: |
+  Borg was built out of the frustration of having to leave the terminal to
+  search and click around for bash snippets. Borg's succint output also makes
+  it easy to glance over multiple snippets quickly.
+
+grade: devel
+confinement: strict
+
+apps:
+  borg:
+    command: borg
+    plugs: [network]
+
+parts:
+  borg:
+    source: .
+    plugin: go
+    go-importpath: github.com/ok-borg/borg
