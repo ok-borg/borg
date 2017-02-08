@@ -94,3 +94,7 @@ The borg mascot has been delivered to you by the amazing [Fabricio Rosa Marques]
 ##### Running with docker
 
 You can use the [dockerized borg client](https://github.com/juhofriman/borg-docker) if you don't want to install anything on your host!
+
+### Outages
+
+- We've had a multi day outage on Jan 18 - Jan 28. It ruined our uptime stats for the next couple of thousand years.
