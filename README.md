@@ -48,14 +48,14 @@ brew install borg
 For linux, download a release manually [releases](https://github.com/ok-borg/borg/releases)
 
 ```
-wget https://github.com/ok-borg/borg/releases/download/v0.0.1/borg_linux_amd64 -O /usr/local/bin/borg
+wget https://github.com/ok-borg/borg/releases/download/v0.0.3/borg_linux_amd64 -O /usr/local/bin/borg
 chmod 755 /usr/local/bin/borg
 ```
 
 Or download a release manually for Mac:
 
 ```
-wget https://github.com/ok-borg/borg/releases/download/v0.0.1/borg_darwin_amd64 -O /usr/local/bin/borg
+wget https://github.com/ok-borg/borg/releases/download/v0.0.3/borg_darwin_amd64 -O /usr/local/bin/borg
 chmod 755 /usr/local/bin/borg
 ```
 
