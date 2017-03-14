@@ -3,7 +3,6 @@ package conf
 import (
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path/filepath"
 
 	flag "github.com/juju/gnuflag"
@@ -63,20 +62,18 @@ func init() {
 }
 
 func borgDir() string {
-	usr, err := user.Current()
-	if err != nil {
-		panic(err)
+	home := os.Getenv("HOME")
+	if len(home) == 0 {
+		panic("$HOME environment variable is not set")
 	}
-	dir := filepath.Join(usr.HomeDir, ".borg")
-
+	dir := filepath.Join(home, ".borg")
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if xdgConfigHome := os.Getenv("XDG_CONFIG_HOME"); xdgConfigHome != "" {
 			dir = filepath.Join(xdgConfigHome, "borg")
 		} else {
-			dir = filepath.Join(os.Getenv("HOME"), ".config")
+			dir = filepath.Join(home, ".config")
 		}
 	}
-
 	return dir
 }
 
@@ -94,12 +91,12 @@ func (c Config) Save() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(QueryFile, bs, os.ModePerm)
+	return ioutil.WriteFile(ConfigFile, bs, os.ModePerm)
 }
 
 // Get config
 func Get() (Config, error) {
-	bs, err := ioutil.ReadFile(QueryFile)
+	bs, err := ioutil.ReadFile(ConfigFile)
 	if err != nil {
 		panic(err)
 	}
