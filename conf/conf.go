@@ -91,12 +91,12 @@ func (c Config) Save() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(QueryFile, bs, os.ModePerm)
+	return ioutil.WriteFile(ConfigFile, bs, os.ModePerm)
 }
 
 // Get config
 func Get() (Config, error) {
-	bs, err := ioutil.ReadFile(QueryFile)
+	bs, err := ioutil.ReadFile(ConfigFile)
 	if err != nil {
 		panic(err)
 	}
