@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"strings"
+
 	"github.com/fatih/color"
 	flag "github.com/juju/gnuflag"
 	"github.com/ok-borg/borg/commands"
@@ -25,7 +27,7 @@ func main() {
 
 	var err error
 	if c, ok := commands.Commands[flag.Arg(0)]; !ok {
-		err = commands.Query(flag.Arg(0))
+		err = commands.Query(strings.Join(flag.Args(), " "))
 	} else {
 		err = c.F(flag.Args())
 	}
