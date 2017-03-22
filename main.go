@@ -26,9 +26,8 @@ func main() {
 	}
 
 	var err error
-	searchArgs := strings.Join(flag.Args(), " ")
-	if c, ok := commands.Commands[searchArgs]; !ok {
-		err = commands.Query(searchArgs)
+	if c, ok := commands.Commands[flag.Arg(0)]; !ok {
+		err = commands.Query(strings.Join(flag.Args(), " "))
 	} else {
 		err = c.F(flag.Args())
 	}
