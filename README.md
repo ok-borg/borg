@@ -1,11 +1,11 @@
 <p align="center"><img height="180px" width="180px" src="https://github.com/fabric-8/borg/raw/master/assets/borg_mascot.png" alt=""></p>
 
-BORG - Search and save shell snippets without leaving your terminal 
+BORG – Search and save shell snippets without leaving your terminal 
 ===
 ![cruft guaranteed](https://img.shields.io/badge/cruft-guaranteed-green.svg) [![Travis CI](https://api.travis-ci.org/ok-borg/borg.svg?branch=master)](https://travis-ci.org/ok-borg/borg) [![Go Report Card](https://goreportcard.com/badge/github.com/ok-borg/borg)](https://goreportcard.com/report/github.com/ok-borg/borg) [![Slack Status](http://ok-b.org:1492/badge.svg)](http://ok-b.org:1492)
 
 Borg was built out of the frustration of having to leave the terminal to search and click around for bash snippets.
-Borg's succint output also makes it easy to glance over multiple snippets quickly.
+Glance over multiple snippets quickly with Borg's succinct output.
 
 ### Search
 
@@ -33,26 +33,26 @@ borg "list only files"
         ...
 ```
 
-Use `borg pipeto less` to pipe the results straight to `less`, or any other program of your choosing.
+Use `borg pipeto less` to pipe the results straight to `less` (or another program).
 
-Can't find what you are looking for? Be a good hacker and contribute your wisdom to the hive mind - [add your own snippets or tweak the existing ones.](https://github.com/ok-borg/borg/tree/master/docs)
+Can't find what you are looking for? Be a good hacker and contribute your wisdom to the hive mind by [tweaking existing snippets and adding your own](https://github.com/ok-borg/borg/tree/master/docs).
 
 ### Install
 
-The following releases only let you search, to use add/edit install from source, releases are coming soon.
+The following releases only let you search snippets. To add or edit snippets, install from source. Releases are coming soon.
 
 ```
 brew install borg
 ```
 
-For linux, download a release manually [releases](https://github.com/ok-borg/borg/releases)
+For Linux, download [a release](https://github.com/ok-borg/borg/releases) manually:
 
 ```
 wget https://github.com/ok-borg/borg/releases/download/v0.0.3/borg_linux_amd64 -O /usr/local/bin/borg
 chmod 755 /usr/local/bin/borg
 ```
 
-Or download a release manually for Mac:
+Same for Mac:
 
 ```
 wget https://github.com/ok-borg/borg/releases/download/v0.0.3/borg_darwin_amd64 -O /usr/local/bin/borg
@@ -61,25 +61,23 @@ chmod 755 /usr/local/bin/borg
 
 ### Rate results: `worked`
 
-When you see a result that worked for you, you can use the `worked` command to give feedback:
+When a result works for you, use the `worked` command to give feedback:
 
 ```
 borg worked 12
 ```
 
-Once you do this the result will rank higher for similar queries - it is especially useful if you find a good result that you think are too down in the result list.
+This will rank the result higher for similar queries—especially helpful when a good result was buried in the search results.
 
 ### Advanced usage
 
-For more commands and their explanations, please see [advanced usage](https://github.com/ok-borg/borg/tree/master/docs)
+For more commands and their explanations, please see [advanced usage](https://github.com/ok-borg/borg/tree/master/docs).
 
 ### How does borg work?
 
-The client connects to a server at ok-b.org, but you can host your own if you want to (see daemon folder).
+The client connects to a server at [ok-b.org](https://ok-b.org/). You can host your own server too (see daemon folder), though self-hosting will become less appealing once people start contributing their own content to the database.
 
-Self hosting will become less appealing once people start contributing their own content to the database though.
-
-### Explanation for ui
+### UI explanation
 
 - `()` denotes hits for your query
 - `[]` denotes snippets found for a given query
@@ -89,12 +87,10 @@ Self hosting will become less appealing once people start contributing their own
 
 The borg mascot has been delivered to you by the amazing [Fabricio Rosa Marques](https://dribbble.com/fabric8).
 
-### Community:
+### Community
 
-##### Running with docker
-
-You can use the [dockerized borg client](https://github.com/juhofriman/borg-docker) if you don't want to install anything on your host!
+- Use the [dockerized borg client](https://github.com/juhofriman/borg-docker) if you don't want to install anything on your host!
 
 ### Outages
 
-- We've had a multi day outage on Jan 18 - Jan 28. It ruined our uptime stats for the next couple of thousand years.
+- We've had a multi day outage Jan 18–28. It ruined our uptime stats for the next thousand years.
