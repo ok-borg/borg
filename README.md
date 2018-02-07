@@ -8,7 +8,7 @@ Borg was built out of the frustration of having to leave the terminal to search 
 Glance over multiple snippets quickly with Borg's succinct output.
 
 PLEASE READ: The website (https://ok-b.org) is down, because I didn't have time to maintain it.
-You can host borg yourself, and we plan to resurrect the version hosted by us on 1backend (github.com/1backend/1backend).
+You can host borg yourself, and we plan to resurrect the version hosted by us on 1backend (https://github.com/1backend/1backend).
 The ETA for this is a couple of months.
 
 ### Search
