@@ -7,6 +7,10 @@ BORG – Search and save shell snippets without leaving your terminal
 Borg was built out of the frustration of having to leave the terminal to search and click around for bash snippets.
 Glance over multiple snippets quickly with Borg's succinct output.
 
+PLEASE READ: The website (https://ok-b.org) is down, because I didn't have time to maintain it.
+You can host borg yourself, and we plan to resurrect the version hosted by us on 1backend (github.com/1backend/1backend).
+The ETA for this is a couple of months.
+
 ### Search
 
 ```
@@ -90,7 +94,3 @@ The borg mascot has been delivered to you by the amazing [Fabricio Rosa Marques]
 ### Community
 
 - Use the [dockerized borg client](https://github.com/juhofriman/borg-docker) if you don't want to install anything on your host!
-
-### Outages
-
-- We've had a multi day outage Jan 18–28. It ruined our uptime stats for the next thousand years.
